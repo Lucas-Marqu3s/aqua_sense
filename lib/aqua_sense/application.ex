@@ -15,7 +15,8 @@ defmodule AquaSense.Application do
       # Start a worker by calling: AquaSense.Worker.start_link(arg)
       # {AquaSense.Worker, arg},
       # Start to serve requests, typically the last entry
-      AquaSenseWeb.Endpoint
+      AquaSenseWeb.Endpoint,
+      {AshAuthentication.Supervisor, [otp_app: :aqua_sense]}
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

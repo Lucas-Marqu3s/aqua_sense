@@ -1,4 +1,5 @@
 import Config
+config :ash, policies: [show_policy_breakdowns?: true]
 
 # Configure your database
 config :aqua_sense, AquaSense.Repo,
@@ -68,7 +69,7 @@ config :aqua_sense, AquaSenseWeb.Endpoint,
   ]
 
 # Enable dev routes for dashboard and mailbox
-config :aqua_sense, dev_routes: true
+config :aqua_sense, dev_routes: true, token_signing_secret: "RKgyFM+Nmgnunh2u4wyxBHlnmD4sqwoV"
 
 # Do not include metadata nor timestamps in development logs
 config :logger, :default_formatter, format: "[$level] $message\n"

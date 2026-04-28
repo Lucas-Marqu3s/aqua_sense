@@ -1,4 +1,7 @@
 import Config
+config :aqua_sense, token_signing_secret: "Wu889UNMpXluherRa9KF87Ne+xBJdtwN"
+config :bcrypt_elixir, log_rounds: 1
+config :ash, policies: [show_policy_breakdowns?: true], disable_async?: true
 
 # Configure your database
 #
