@@ -41,6 +41,7 @@ defmodule AquaSense.MixProject do
   # Type `mix help deps` for examples and options.
   defp deps do
     [
+      {:mishka_chelekom, "~> 0.0.8", only: :dev},
       {:bcrypt_elixir, "~> 3.0"},
       {:picosat_elixir, "~> 0.2"},
       {:sourceror, "~> 1.8", only: [:dev, :test]},

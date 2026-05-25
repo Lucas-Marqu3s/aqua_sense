@@ -1,0 +1,333 @@
+<div class="flex h-screen overflow-hidden" style="background:#030712;color:#e2e8f0;" data-theme="dark">
+
+  <%!-- ═══ SIDEBAR ═══ --%>
+  <aside class="w-60 flex-none flex flex-col border-r" style="background:#0f172a;border-color:#1e293b;">
+
+    <%!-- Logo --%>
+    <div class="flex items-center gap-3 px-4 py-5 border-b" style="border-color:#1e293b;">
+      <div class="w-9 h-9 rounded-lg flex items-center justify-center" style="background:#164e63;">
+        <.icon name="hero-beaker" class="w-5 h-5 text-cyan-400" />
+      </div>
+      <div>
+        <p class="font-bold text-sm" style="color:#f8fafc;">AquaSense</p>
+        <p class="text-xs" style="color:#475569;">Sistema de Monitoramento</p>
+      </div>
+    </div>
+
+    <%!-- Navigation --%>
+    <nav class="flex-1 p-3 space-y-1 overflow-y-auto">
+      <button
+        phx-click="set_nav" phx-value-tab="overview"
+        class="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-left transition-all"
+        style={if @active_tab == "overview", do: "background:#164e63;color:#22d3ee;", else: "color:#64748b;"}
+      >
+        <.icon name="hero-squares-2x2" class="w-4 h-4 flex-none" />
+        Visão Geral
+      </button>
+
+      <button
+        phx-click="set_nav" phx-value-tab="history"
+        class="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-left transition-all"
+        style={if @active_tab == "history", do: "background:#164e63;color:#22d3ee;", else: "color:#64748b;"}
+      >
+        <.icon name="hero-chart-bar" class="w-4 h-4 flex-none" />
+        Histórico
+      </button>
+
+      <button
+        phx-click="set_nav" phx-value-tab="alerts"
+        class="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-left transition-all"
+        style={if @active_tab == "alerts", do: "background:#164e63;color:#22d3ee;", else: "color:#64748b;"}
+      >
+        <.icon name="hero-bell" class="w-4 h-4 flex-none" />
+        <span>Alertas</span>
+        <span class="ml-auto text-xs px-1.5 py-0.5 rounded-full" style="background:#422006;color:#fbbf24;">2</span>
+      </button>
+
+      <button
+        phx-click="set_nav" phx-value-tab="settings"
+        class="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-left transition-all"
+        style={if @active_tab == "settings", do: "background:#164e63;color:#22d3ee;", else: "color:#64748b;"}
+      >
+        <.icon name="hero-cog-6-tooth" class="w-4 h-4 flex-none" />
+        Configurações
+      </button>
+    </nav>
+
+    <%!-- MQTT status --%>
+    <div class="p-4 border-t" style="border-color:#1e293b;">
+      <div class="flex items-center gap-2 text-xs" style="color:#475569;">
+        <div class="w-1.5 h-1.5 rounded-full animate-pulse" style="background:#4ade80;"></div>
+        MQTT Conectado
+      </div>
+      <div class="text-xs mt-1" style="color:#334155;">Última leitura: agora</div>
+    </div>
+
+  </aside>
+
+  <%!-- ═══ MAIN AREA ═══ --%>
+  <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
+
+    <%!-- Header --%>
+    <header class="flex-none flex items-center justify-between px-6 py-4 border-b" style="background:#0f172a99;border-color:#1e293b;">
+      <div>
+        <h1 class="text-lg font-semibold" style="color:#f8fafc;">Dashboard — Monitoramento</h1>
+        <p class="text-xs" style="color:#64748b;">Reservatório Subterrâneo · Condomínio Bloco A</p>
+      </div>
+      <div class="flex items-center gap-4">
+        <div class="flex items-center gap-2">
+          <div class="w-2 h-2 rounded-full animate-pulse" style="background:#4ade80;"></div>
+          <span class="text-xs font-medium" style="color:#4ade80;">Sistema Online</span>
+        </div>
+        <button class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs transition-all" style="border-color:#334155;color:#94a3b8;">
+          <.icon name="hero-arrow-down-tray" class="w-3.5 h-3.5" />
+          Exportar Dados
+        </button>
+      </div>
+    </header>
+
+    <%!-- Scrollable content --%>
+    <div class="flex-1 overflow-y-auto p-6 space-y-5">
+
+      <%!-- ── METRIC CARDS ── --%>
+      <div class="grid grid-cols-4 gap-4">
+
+        <%!-- Water Level --%>
+        <div class="rounded-xl p-4 border" style="background:#0f172a;border-color:#1e293b;">
+          <div class="flex justify-between items-center mb-2">
+            <span class="text-xs uppercase tracking-wider" style="color:#64748b;">Nível da Água</span>
+            <span class="text-xs px-2 py-0.5 rounded-full" style="background:#14532d33;color:#4ade80;">Normal</span>
+          </div>
+          <div class="flex items-end gap-1 mb-3">
+            <span class="text-3xl font-bold" style="color:#f8fafc;">{@metrics.water_level}</span>
+            <span class="text-sm mb-1" style="color:#64748b;">%</span>
+          </div>
+          <svg viewBox="0 0 100 30" width="100%" height="32" preserveAspectRatio="none">
+            <polyline points={@sparklines.level} fill="none" stroke="#22d3ee" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+
+        <%!-- Temperature --%>
+        <div class="rounded-xl p-4 border" style="background:#0f172a;border-color:#1e293b;">
+          <div class="flex justify-between items-center mb-2">
+            <span class="text-xs uppercase tracking-wider" style="color:#64748b;">Temperatura</span>
+            <span class="text-xs px-2 py-0.5 rounded-full" style="background:#14532d33;color:#4ade80;">Normal</span>
+          </div>
+          <div class="flex items-end gap-1 mb-3">
+            <span class="text-3xl font-bold" style="color:#f8fafc;">{@metrics.temperature}</span>
+            <span class="text-sm mb-1" style="color:#64748b;">°C</span>
+          </div>
+          <svg viewBox="0 0 100 30" width="100%" height="32" preserveAspectRatio="none">
+            <polyline points={@sparklines.temperature} fill="none" stroke="#34d399" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+
+        <%!-- Turbidity --%>
+        <div class="rounded-xl p-4 border" style="background:#0f172a;border-color:#1e293b;">
+          <div class="flex justify-between items-center mb-2">
+            <span class="text-xs uppercase tracking-wider" style="color:#64748b;">Turbidez</span>
+            <span class="text-xs px-2 py-0.5 rounded-full" style="background:#14532d33;color:#4ade80;">Normal</span>
+          </div>
+          <div class="flex items-end gap-1 mb-3">
+            <span class="text-3xl font-bold" style="color:#f8fafc;">{@metrics.turbidity}</span>
+            <span class="text-sm mb-1" style="color:#64748b;">NTU</span>
+          </div>
+          <svg viewBox="0 0 100 30" width="100%" height="32" preserveAspectRatio="none">
+            <polyline points={@sparklines.turbidity} fill="none" stroke="#a78bfa" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+
+        <%!-- Conductivity — alert state --%>
+        <div class="rounded-xl p-4 border" style="background:#0f172a;border-color:#854d0e88;box-shadow:0 0 0 1px #854d0e44;">
+          <div class="flex justify-between items-center mb-2">
+            <span class="text-xs uppercase tracking-wider" style="color:#64748b;">Condutividade</span>
+            <span class="text-xs px-2 py-0.5 rounded-full" style="background:#45260233;color:#fbbf24;">Atenção</span>
+          </div>
+          <div class="flex items-end gap-1 mb-3">
+            <span class="text-3xl font-bold" style="color:#f8fafc;">{@metrics.conductivity}</span>
+            <span class="text-sm mb-1" style="color:#64748b;">μS/cm</span>
+          </div>
+          <svg viewBox="0 0 100 30" width="100%" height="32" preserveAspectRatio="none">
+            <polyline points={@sparklines.conductivity} fill="none" stroke="#fbbf24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+
+      </div>
+
+      <%!-- ── TANK + HISTORICAL CHART ── --%>
+      <div class="grid grid-cols-3 gap-4">
+
+        <%!-- Tank Visualization --%>
+        <div class="rounded-xl p-4 border" style="background:#0f172a;border-color:#1e293b;">
+          <h3 class="text-sm font-medium mb-4" style="color:#cbd5e1;">Reservatório</h3>
+
+          <div class="flex justify-center mb-4">
+            <div class="relative rounded-2xl border-2 overflow-hidden" style="width:112px;height:224px;background:#020617;border-color:#334155;">
+
+              <%!-- Water body --%>
+              <div
+                class="absolute bottom-0 left-0 right-0 transition-all duration-1000"
+                style={"height:#{@metrics.water_level}%;background:linear-gradient(to top,#0e4f6e,#0891b2aa);"}
+              >
+                <%!-- Animated wave on water surface --%>
+                <div class="absolute inset-x-0 overflow-hidden" style="top:-8px;height:16px;">
+                  <div class="aqua-wave-anim flex" style="width:200%;">
+                    <svg viewBox="0 0 112 14" style="width:50%;" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+                      <path d="M0,7 C14,1 28,13 42,7 C56,1 70,13 84,7 C98,1 112,13 112,7 L112,14 L0,14 Z" fill="#22d3ee" opacity="0.55"/>
+                    </svg>
+                    <svg viewBox="0 0 112 14" style="width:50%;" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+                      <path d="M0,7 C14,1 28,13 42,7 C56,1 70,13 84,7 C98,1 112,13 112,7 L112,14 L0,14 Z" fill="#22d3ee" opacity="0.55"/>
+                    </svg>
+                  </div>
+                </div>
+              </div>
+
+              <%!-- Percentage markers --%>
+              <%= for pct <- [100, 75, 50, 25, 0] do %>
+                <div
+                  class="absolute right-2 text-right pointer-events-none"
+                  style={"font-size:8px;color:#475569;bottom:#{pct}%;transform:translateY(50%);"}
+                >
+                  {pct}%
+                </div>
+                <div
+                  class="absolute inset-x-0 pointer-events-none"
+                  style={"border-top:1px solid #1e293b;bottom:#{pct}%;"}
+                />
+              <% end %>
+
+            </div>
+          </div>
+
+          <div class="space-y-2 text-xs" style="color:#64748b;">
+            <div class="flex justify-between">
+              <span>Volume estimado</span>
+              <span class="font-medium" style="color:#e2e8f0;">~{trunc(@metrics.water_level * 200)}L</span>
+            </div>
+            <div class="flex justify-between">
+              <span>Última recarga</span>
+              <span class="font-medium" style="color:#e2e8f0;">3h atrás</span>
+            </div>
+            <div class="flex justify-between">
+              <span>Previsão de dreno</span>
+              <span class="font-medium" style="color:#e2e8f0;">~47h</span>
+            </div>
+          </div>
+        </div>
+
+        <%!-- Historical Chart --%>
+        <div class="col-span-2 rounded-xl p-4 border" style="background:#0f172a;border-color:#1e293b;">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-sm font-medium" style="color:#cbd5e1;">Histórico — últimas 24h</h3>
+            <div class="flex gap-1">
+              <%= for {tab, label} <- [{"level", "Nível"}, {"temperature", "Temp."}, {"turbidity", "Turbidez"}, {"conductivity", "Condut."}] do %>
+                <button
+                  phx-click="set_chart_tab"
+                  phx-value-tab={tab}
+                  class="px-2.5 py-1 rounded-lg text-xs transition-all"
+                  style={if @chart_tab == tab, do: "background:#164e63;color:#22d3ee;", else: "color:#475569;"}
+                >
+                  {label}
+                </button>
+              <% end %>
+            </div>
+          </div>
+
+          <%!-- SVG Line Chart --%>
+          <svg viewBox="0 0 520 150" width="100%" class="overflow-visible">
+            <defs>
+              <linearGradient id="chart-fill" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#22d3ee" stop-opacity="0.2"/>
+                <stop offset="100%" stop-color="#22d3ee" stop-opacity="0"/>
+              </linearGradient>
+            </defs>
+
+            <%!-- Horizontal grid lines --%>
+            <%= for y <- [10, 42, 74, 107, 140] do %>
+              <line x1="8" y1={y} x2="512" y2={y} stroke="#1e293b" stroke-width="1"/>
+            <% end %>
+
+            <%!-- Area fill --%>
+            <path d={@chart.area} fill="url(#chart-fill)"/>
+
+            <%!-- Line --%>
+            <polyline
+              points={@chart.polyline}
+              fill="none"
+              stroke="#22d3ee"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+
+            <%!-- Time labels --%>
+            <text x="8"   y="148" fill="#475569" font-size="9" text-anchor="middle">00h</text>
+            <text x="139" y="148" fill="#475569" font-size="9" text-anchor="middle">06h</text>
+            <text x="271" y="148" fill="#475569" font-size="9" text-anchor="middle">12h</text>
+            <text x="402" y="148" fill="#475569" font-size="9" text-anchor="middle">18h</text>
+            <text x="512" y="148" fill="#475569" font-size="9" text-anchor="middle">24h</text>
+          </svg>
+
+        </div>
+
+      </div>
+
+      <%!-- ── ALERTS + SYSTEM STATUS ── --%>
+      <div class="grid grid-cols-2 gap-4">
+
+        <%!-- Alerts --%>
+        <div class="rounded-xl p-4 border" style="background:#0f172a;border-color:#1e293b;">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-sm font-medium" style="color:#cbd5e1;">Alertas Recentes</h3>
+            <span class="text-xs" style="color:#475569;">{length(@alerts)} eventos</span>
+          </div>
+
+          <div class="space-y-2">
+            <%= for alert <- @alerts do %>
+              <div class="flex items-start gap-3 p-3 rounded-lg" style={"background:#{alert_bg_hex(alert.severity)};"}>
+                <div class="w-2 h-2 rounded-full flex-none mt-1" style={"background:#{alert_dot_hex(alert.severity)};"}></div>
+                <div class="flex-1 min-w-0">
+                  <p class="text-xs leading-relaxed" style="color:#e2e8f0;">{alert.message}</p>
+                  <p class="text-xs mt-0.5" style="color:#475569;">{alert.time}</p>
+                </div>
+                <span class="text-xs px-2 py-0.5 rounded-full flex-none whitespace-nowrap" style={"background:#{alert_badge_bg_hex(alert.severity)};color:#{alert_dot_hex(alert.severity)};"}>
+                  {alert_label(alert.severity)}
+                </span>
+              </div>
+            <% end %>
+          </div>
+        </div>
+
+        <%!-- System Status --%>
+        <div class="rounded-xl p-4 border" style="background:#0f172a;border-color:#1e293b;">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-sm font-medium" style="color:#cbd5e1;">Status do Sistema</h3>
+            <div class="flex items-center gap-1.5">
+              <div class="w-1.5 h-1.5 rounded-full animate-pulse" style="background:#4ade80;"></div>
+              <span class="text-xs" style="color:#4ade80;">4/5 online</span>
+            </div>
+          </div>
+
+          <div class="space-y-3">
+            <%= for svc <- @system_status do %>
+              <div class="flex items-center gap-3">
+                <div class="w-2 h-2 rounded-full flex-none" style={"background:#{status_dot_hex(svc.status)};"}></div>
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center justify-between">
+                    <span class="text-xs font-medium" style="color:#e2e8f0;">{svc.name}</span>
+                    <span class="text-xs" style={"color:#{status_dot_hex(svc.status)};"}>
+                      {status_label(svc.status)}
+                    </span>
+                  </div>
+                  <p class="text-xs mt-0.5 truncate" style="color:#475569;">{svc.detail}</p>
+                </div>
+              </div>
+            <% end %>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+</div>
