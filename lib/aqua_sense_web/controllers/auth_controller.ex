@@ -2,45 +2,37 @@ defmodule AquaSenseWeb.AuthController do
   use AquaSenseWeb, :controller
   use AshAuthentication.Phoenix.Controller
 
-  def success(conn, activity, user, _token) do
-    return_to = get_session(conn, :return_to) || ~p"/"
+  def success(conn, {:password, :register}, _user, _token) do
+    conn
+    |> put_flash(:info, "Conta criada! Aguarde a liberação pelo administrador para acessar.")
+    |> redirect(to: ~p"/sign-in")
+  end
 
-    message =
-      case activity do
-        {:confirm_new_user, :confirm} -> "Your email address has now been confirmed"
-        {:password, :reset} -> "Your password has successfully been reset"
-        _ -> "You are now signed in"
-      end
-
+  def success(conn, _activity, user, _token) do
     conn
     |> delete_session(:return_to)
     |> store_in_session(user)
-    # If your resource has a different name, update the assign name here (i.e :current_admin)
     |> assign(:current_user, user)
-    |> put_flash(:info, message)
-    |> redirect(to: return_to)
+    |> redirect(to: ~p"/")
   end
 
-  def failure(conn, activity, reason) do
-    message =
-      case {activity, reason} do
-        {_,
-         %AshAuthentication.Errors.AuthenticationFailed{
-           caused_by: %Ash.Error.Forbidden{
-             errors: [%AshAuthentication.Errors.CannotConfirmUnconfirmedUser{}]
-           }
-         }} ->
-          """
-          You have already signed in another way, but have not confirmed your account.
-          You can confirm your account using the link we sent to you, or by resetting your password.
-          """
-
-        _ ->
-          "Incorrect email or password"
-      end
-
+  def failure(conn, {:password, :register}, _reason) do
     conn
-    |> put_flash(:error, message)
+    |> put_flash(:error, "Erro ao criar conta. Verifique os dados informados.")
+    |> redirect(to: ~p"/register")
+  end
+
+  def failure(conn, _activity, %AshAuthentication.Errors.AuthenticationFailed{
+        caused_by: %AshAuthentication.Errors.UnconfirmedUser{}
+      }) do
+    conn
+    |> put_flash(:error, "Acesso pendente. Aguarde a liberação pelo administrador.")
+    |> redirect(to: ~p"/sign-in")
+  end
+
+  def failure(conn, _activity, _reason) do
+    conn
+    |> put_flash(:error, "Email ou senha inválidos.")
     |> redirect(to: ~p"/sign-in")
   end
 

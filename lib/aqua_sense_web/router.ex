@@ -48,11 +48,6 @@ defmodule AquaSenseWeb.Router do
                   Elixir.AshAuthentication.Phoenix.Overrides.DaisyUI
                 ]
 
-    # Remove this if you do not use the confirmation strategy
-    confirm_route AquaSense.Accounts.User, :confirm_new_user,
-      auth_routes_prefix: "/auth",
-      overrides: [AquaSenseWeb.AuthOverrides, Elixir.AshAuthentication.Phoenix.Overrides.DaisyUI]
-
     # Remove this if you do not use the magic link strategy.
     magic_sign_in_route(AquaSense.Accounts.User, :magic_link,
       auth_routes_prefix: "/auth",

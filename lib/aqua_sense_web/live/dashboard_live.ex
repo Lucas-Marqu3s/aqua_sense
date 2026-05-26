@@ -16,6 +16,8 @@ defmodule AquaSenseWeb.DashboardLive do
   }
 
   def mount(_params, _session, socket) do
+    users = AquaSense.Accounts.User |> Ash.read!(domain: AquaSense.Accounts, authorize?: false)
+
     {:ok,
      assign(socket,
        metrics: %{
@@ -37,6 +39,8 @@ defmodule AquaSenseWeb.DashboardLive do
          %{name: "Backend Elixir", status: :online, detail: "Phoenix 1.8 / Ash 3.0"},
          %{name: "Rede WiFi", status: :warning, detail: "RSSI: −72 dBm"}
        ],
+       users: users,
+       user_form: %{name: "", email: "", password: "", error: nil, success: nil},
        active_tab: "overview",
        chart_tab: "level",
        sparklines: %{
@@ -57,6 +61,59 @@ defmodule AquaSenseWeb.DashboardLive do
     history = Map.fetch!(@chart_histories, tab)
     {:noreply, assign(socket, chart_tab: tab, chart: build_chart(history))}
   end
+
+  def handle_event("create_user", %{"name" => name, "email" => email, "password" => password}, socket) do
+    result =
+      AquaSense.Accounts.User
+      |> Ash.Changeset.for_create(:register_with_password, %{
+        name: name,
+        email: email,
+        password: password,
+        password_confirmation: password
+      })
+      |> Ash.create(domain: AquaSense.Accounts, authorize?: false)
+
+    case result do
+      {:ok, user} ->
+        # Auto-confirma usuários criados pelo admin
+        user
+        |> Ash.Changeset.for_update(:confirm_user, %{})
+        |> Ash.update(domain: AquaSense.Accounts, authorize?: false)
+
+        users = AquaSense.Accounts.User |> Ash.read!(domain: AquaSense.Accounts, authorize?: false)
+        form = %{name: "", email: "", password: "", error: nil, success: "Usuário criado com sucesso!"}
+        {:noreply, assign(socket, users: users, user_form: form)}
+
+      {:error, error} ->
+        msg = user_error_message(error)
+        form = %{socket.assigns.user_form | error: msg, success: nil}
+        {:noreply, assign(socket, user_form: form)}
+    end
+  end
+
+  def handle_event("confirm_user", %{"id" => id}, socket) do
+    case AquaSense.Accounts.User
+         |> Ash.get!(id, domain: AquaSense.Accounts, authorize?: false)
+         |> Ash.Changeset.for_update(:confirm_user, %{})
+         |> Ash.update(domain: AquaSense.Accounts, authorize?: false) do
+      {:ok, _} ->
+        users = AquaSense.Accounts.User |> Ash.read!(domain: AquaSense.Accounts, authorize?: false)
+        {:noreply, assign(socket, users: users)}
+
+      {:error, _} ->
+        {:noreply, socket}
+    end
+  end
+
+  defp user_error_message(%{errors: [first | _]}) do
+    case first do
+      %{message: msg} -> msg
+      %{messages: [msg | _]} -> msg
+      _ -> "Erro ao criar usuário."
+    end
+  end
+
+  defp user_error_message(_), do: "Erro ao criar usuário."
 
   defp sparkline(values) do
     n = length(values)

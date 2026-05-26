@@ -52,6 +52,15 @@
         <.icon name="hero-cog-6-tooth" class="w-4 h-4 flex-none" />
         Configurações
       </button>
+
+      <button
+        phx-click="set_nav" phx-value-tab="users"
+        class="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-left transition-all"
+        style={if @active_tab == "users", do: "background:#164e63;color:#22d3ee;", else: "color:#64748b;"}
+      >
+        <.icon name="hero-users" class="w-4 h-4 flex-none" />
+        Usuários
+      </button>
     </nav>
 
     <%!-- MQTT status --%>
@@ -88,6 +97,9 @@
 
     <%!-- Scrollable content --%>
     <div class="flex-1 overflow-y-auto p-6 space-y-5">
+
+      <%!-- ── OVERVIEW CONTENT ── --%>
+      <%= if @active_tab != "users" do %>
 
       <%!-- ── METRIC CARDS ── --%>
       <div class="grid grid-cols-4 gap-4">
@@ -327,6 +339,135 @@
         </div>
 
       </div>
+
+      <% end %>
+
+      <%!-- ── USERS TAB ── --%>
+      <%= if @active_tab == "users" do %>
+        <div class="grid grid-cols-2 gap-6">
+
+          <%!-- Create user form --%>
+          <div class="rounded-xl p-6 border" style="background:#0f172a;border-color:#1e293b;">
+            <h3 class="text-base font-semibold mb-5" style="color:#cbd5e1;">Criar Usuário</h3>
+
+            <%= if @user_form.success do %>
+              <div class="flex items-center gap-2 px-4 py-3 rounded-lg text-sm mb-4" style="background:#052e1688;border:1px solid #4ade8044;color:#4ade80;">
+                <.icon name="hero-check-circle" class="w-4 h-4 flex-none" />
+                {@user_form.success}
+              </div>
+            <% end %>
+
+            <%= if @user_form.error do %>
+              <div class="flex items-center gap-2 px-4 py-3 rounded-lg text-sm mb-4" style="background:#450a0a88;border:1px solid #f8717144;color:#fca5a5;">
+                <.icon name="hero-exclamation-circle" class="w-4 h-4 flex-none" />
+                {@user_form.error}
+              </div>
+            <% end %>
+
+            <form phx-submit="create_user" class="space-y-4">
+
+              <div>
+                <label class="block text-xs font-medium mb-1.5" style="color:#94a3b8;">Nome completo</label>
+                <div class="flex items-center gap-2 px-3 py-2.5 rounded-lg border" style="background:#020617;border-color:#334155;">
+                  <.icon name="hero-user" class="w-4 h-4 flex-none text-slate-500" />
+                  <input
+                    type="text"
+                    name="name"
+                    value={@user_form.name}
+                    placeholder="João da Silva"
+                    required
+                    class="flex-1 bg-transparent text-sm outline-none"
+                    style="color:#e2e8f0;"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-xs font-medium mb-1.5" style="color:#94a3b8;">Email</label>
+                <div class="flex items-center gap-2 px-3 py-2.5 rounded-lg border" style="background:#020617;border-color:#334155;">
+                  <.icon name="hero-envelope" class="w-4 h-4 flex-none text-slate-500" />
+                  <input
+                    type="email"
+                    name="email"
+                    value={@user_form.email}
+                    placeholder="joao@email.com"
+                    required
+                    class="flex-1 bg-transparent text-sm outline-none"
+                    style="color:#e2e8f0;"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-xs font-medium mb-1.5" style="color:#94a3b8;">Senha</label>
+                <div class="flex items-center gap-2 px-3 py-2.5 rounded-lg border" style="background:#020617;border-color:#334155;">
+                  <.icon name="hero-lock-closed" class="w-4 h-4 flex-none text-slate-500" />
+                  <input
+                    type="password"
+                    name="password"
+                    placeholder="mínimo 8 caracteres"
+                    required
+                    class="flex-1 bg-transparent text-sm outline-none"
+                    style="color:#e2e8f0;"
+                  />
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                class="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium transition-all"
+                style="background:#0e7490;color:#ffffff;"
+              >
+                <.icon name="hero-user-plus" class="w-4 h-4" />
+                Criar Usuário
+              </button>
+
+            </form>
+          </div>
+
+          <%!-- Users list --%>
+          <div class="rounded-xl p-6 border" style="background:#0f172a;border-color:#1e293b;">
+            <div class="flex items-center justify-between mb-5">
+              <h3 class="text-base font-semibold" style="color:#cbd5e1;">Usuários Cadastrados</h3>
+              <span class="text-xs px-2 py-0.5 rounded-full" style="background:#164e6344;color:#22d3ee;">{length(@users)}</span>
+            </div>
+
+            <%= if Enum.empty?(@users) do %>
+              <div class="flex flex-col items-center justify-center py-10 text-center">
+                <.icon name="hero-users" class="w-10 h-10 mb-3 text-slate-700" />
+                <p class="text-sm" style="color:#475569;">Nenhum usuário cadastrado ainda.</p>
+              </div>
+            <% else %>
+              <div class="space-y-3">
+                <%= for user <- @users do %>
+                  <div class="flex items-center gap-3 p-3 rounded-lg" style="background:#020617;">
+                    <div class="w-9 h-9 rounded-full flex items-center justify-center flex-none text-sm font-bold" style="background:#164e63;color:#22d3ee;">
+                      {String.first(user.name) |> String.upcase()}
+                    </div>
+                    <div class="flex-1 min-w-0">
+                      <p class="text-sm font-medium truncate" style="color:#e2e8f0;">{user.name}</p>
+                      <p class="text-xs truncate" style="color:#475569;">{user.email}</p>
+                    </div>
+                    <%= if user.confirmed_at do %>
+                      <span class="text-xs px-2 py-0.5 rounded-full flex-none" style="background:#14532d33;color:#4ade80;">Ativo</span>
+                    <% else %>
+                      <button
+                        phx-click="confirm_user"
+                        phx-value-id={user.id}
+                        class="text-xs px-2 py-1 rounded-lg flex-none transition-all"
+                        style="background:#164e6344;color:#22d3ee;border:1px solid #22d3ee44;"
+                      >
+                        Liberar
+                      </button>
+                    <% end %>
+                  </div>
+                <% end %>
+              </div>
+            <% end %>
+          </div>
+
+        </div>
+      <% end %>
 
     </div>
   </div>

@@ -81,75 +81,151 @@
 
       <%!-- Title --%>
       <div>
-        <h2 class="text-2xl font-bold" style="color:#f8fafc;">Bem-vindo de volta</h2>
-        <p class="text-sm mt-1" style="color:#64748b;">Faça login para acessar o dashboard</p>
+        <%= if @live_action == :register do %>
+          <h2 class="text-2xl font-bold" style="color:#f8fafc;">Criar conta</h2>
+          <p class="text-sm mt-1" style="color:#64748b;">Preencha os dados para se cadastrar</p>
+        <% else %>
+          <h2 class="text-2xl font-bold" style="color:#f8fafc;">Bem-vindo de volta</h2>
+          <p class="text-sm mt-1" style="color:#64748b;">Faça login para acessar o dashboard</p>
+        <% end %>
       </div>
 
-      <%!-- Error alert --%>
-      <%= if @error do %>
-        <div class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm" style="background:#450a0a88;border:1px solid #f8717144;color:#fca5a5;">
-          <.icon name="hero-exclamation-circle" class="w-4 h-4 flex-none" />
-          {@error}
+      <%!-- Flash alerts --%>
+      <%= if @flash["info"] do %>
+        <div class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm" style="background:#052e1688;border:1px solid #4ade8044;color:#4ade80;">
+          <.icon name="hero-check-circle" class="w-4 h-4 flex-none" />
+          {@flash["info"]}
         </div>
       <% end %>
 
-      <%!-- Form --%>
-      <form phx-submit="sign_in" class="space-y-4">
-
-        <TextField.text_field
-          name="email"
-          value=""
-          label="Email"
-          placeholder="seu@email.com"
-          color="natural"
-          type="email"
-          autocomplete="email"
-        >
-          <:start_section>
-            <.icon name="hero-envelope" class="size-4 text-slate-400" />
-          </:start_section>
-        </TextField.text_field>
-
-        <TextField.text_field
-          name="password"
-          value=""
-          label="Senha"
-          placeholder="••••••••"
-          color="natural"
-          type="password"
-          autocomplete="current-password"
-        >
-          <:start_section>
-            <.icon name="hero-lock-closed" class="size-4 text-slate-400" />
-          </:start_section>
-        </TextField.text_field>
-
-        <div class="pt-2">
-          <MishkaButton.button
-            type="submit"
-            color="primary"
-            full_width
-            size="large"
-            class={if @loading, do: "opacity-70 cursor-not-allowed", else: ""}
-          >
-            <%= if @loading do %>
-              <span class="flex items-center justify-center gap-2">
-                <.icon name="hero-arrow-path" class="w-4 h-4 animate-spin" />
-                Entrando...
-              </span>
-            <% else %>
-              Entrar
-            <% end %>
-          </MishkaButton.button>
+      <%= if @flash["error"] do %>
+        <div class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm" style="background:#450a0a88;border:1px solid #f8717144;color:#fca5a5;">
+          <.icon name="hero-exclamation-circle" class="w-4 h-4 flex-none" />
+          {@flash["error"]}
         </div>
+      <% end %>
 
-      </form>
+      <%!-- Sign-in form --%>
+      <%= if @live_action != :register do %>
+        <form method="post" action="/auth/user/password/sign_in" class="space-y-4">
+          <input type="hidden" name="_csrf_token" value={Plug.CSRFProtection.get_csrf_token()} />
 
-      <%!-- Register link --%>
-      <p class="text-center text-sm" style="color:#475569;">
-        Não tem uma conta?{" "}
-        <a href="/register" style="color:#22d3ee;" class="hover:underline">Criar conta</a>
-      </p>
+          <TextField.text_field
+            name="user[email]"
+            value=""
+            label="Email"
+            placeholder="seu@email.com"
+            color="natural"
+            type="email"
+            autocomplete="email"
+          >
+            <:start_section>
+              <.icon name="hero-envelope" class="size-4 text-slate-400" />
+            </:start_section>
+          </TextField.text_field>
+
+          <TextField.text_field
+            name="user[password]"
+            value=""
+            label="Senha"
+            placeholder="••••••••"
+            color="natural"
+            type="password"
+            autocomplete="current-password"
+          >
+            <:start_section>
+              <.icon name="hero-lock-closed" class="size-4 text-slate-400" />
+            </:start_section>
+          </TextField.text_field>
+
+          <div class="pt-2">
+            <MishkaButton.button type="submit" color="primary" full_width size="large">
+              Entrar
+            </MishkaButton.button>
+          </div>
+
+        </form>
+
+        <p class="text-center text-sm" style="color:#475569;">
+          Não tem uma conta?{" "}
+          <a href="/register" style="color:#22d3ee;" class="hover:underline">Criar conta</a>
+        </p>
+      <% end %>
+
+      <%!-- Register form --%>
+      <%= if @live_action == :register do %>
+        <form method="post" action="/auth/user/password/register" class="space-y-4">
+          <input type="hidden" name="_csrf_token" value={Plug.CSRFProtection.get_csrf_token()} />
+
+          <TextField.text_field
+            name="user[name]"
+            value=""
+            label="Nome completo"
+            placeholder="João da Silva"
+            color="natural"
+            type="text"
+            autocomplete="name"
+          >
+            <:start_section>
+              <.icon name="hero-user" class="size-4 text-slate-400" />
+            </:start_section>
+          </TextField.text_field>
+
+          <TextField.text_field
+            name="user[email]"
+            value=""
+            label="Email"
+            placeholder="seu@email.com"
+            color="natural"
+            type="email"
+            autocomplete="email"
+          >
+            <:start_section>
+              <.icon name="hero-envelope" class="size-4 text-slate-400" />
+            </:start_section>
+          </TextField.text_field>
+
+          <TextField.text_field
+            name="user[password]"
+            value=""
+            label="Senha"
+            placeholder="mínimo 8 caracteres"
+            color="natural"
+            type="password"
+            autocomplete="new-password"
+          >
+            <:start_section>
+              <.icon name="hero-lock-closed" class="size-4 text-slate-400" />
+            </:start_section>
+          </TextField.text_field>
+
+          <TextField.text_field
+            name="user[password_confirmation]"
+            value=""
+            label="Confirmar senha"
+            placeholder="••••••••"
+            color="natural"
+            type="password"
+            autocomplete="new-password"
+          >
+            <:start_section>
+              <.icon name="hero-lock-closed" class="size-4 text-slate-400" />
+            </:start_section>
+          </TextField.text_field>
+
+          <div class="pt-2">
+            <MishkaButton.button type="submit" color="primary" full_width size="large">
+              Criar conta
+            </MishkaButton.button>
+          </div>
+
+        </form>
+
+        <p class="text-center text-sm" style="color:#475569;">
+          Já tem uma conta?{" "}
+          <a href="/sign-in" style="color:#22d3ee;" class="hover:underline">Entrar</a>
+        </p>
+      <% end %>
 
     </div>
   </div>

@@ -11,16 +11,6 @@ defmodule AquaSense.Accounts.User do
       log_out_everywhere do
         apply_on_password_change? true
       end
-
-      confirmation :confirm_new_user do
-        monitor_fields [:email]
-        confirm_on_create? true
-        confirm_on_update? false
-        require_interaction? true
-        confirmed_at_field :confirmed_at
-        auto_confirm_actions [:sign_in_with_magic_link, :reset_password_with_token]
-        sender AquaSense.Accounts.User.Senders.SendNewUserConfirmationEmail
-      end
     end
 
     tokens do
@@ -35,6 +25,7 @@ defmodule AquaSense.Accounts.User do
       password :password do
         identity_field :email
         hash_provider AshAuthentication.BcryptProvider
+        require_confirmed_with :confirmed_at
 
         resettable do
           sender AquaSense.Accounts.User.Senders.SendPasswordResetEmail
@@ -61,6 +52,12 @@ defmodule AquaSense.Accounts.User do
       argument :subject, :string, allow_nil?: false
       get? true
       prepare AshAuthentication.Preparations.FilterBySubject
+    end
+
+    update :confirm_user do
+      require_atomic? false
+      accept []
+      change set_attribute(:confirmed_at, &DateTime.utc_now/0)
     end
 
     update :change_password do
@@ -140,6 +137,10 @@ defmodule AquaSense.Accounts.User do
     create :register_with_password do
       description "Register a new user with a email and password."
 
+      argument :name, :string do
+        allow_nil? false
+      end
+
       argument :email, :ci_string do
         allow_nil? false
       end
@@ -157,7 +158,8 @@ defmodule AquaSense.Accounts.User do
         sensitive? true
       end
 
-      # Sets the email from the argument
+      # Sets the name and email from arguments
+      change set_attribute(:name, arg(:name))
       change set_attribute(:email, arg(:email))
 
       # Hashes the provided password
@@ -232,6 +234,11 @@ defmodule AquaSense.Accounts.User do
 
   attributes do
     uuid_primary_key :id
+
+    attribute :name, :string do
+      allow_nil? false
+      public? true
+    end
 
     attribute :email, :ci_string do
       allow_nil? false
