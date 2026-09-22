@@ -1,12 +1,13 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
   <head>
     <%= Application.get_env(:live_debugger, :live_debugger_tags) %>
 
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="csrf-token" content={get_csrf_token()} />
-    <.live_title default="AquaSense" suffix=" · Phoenix Framework">
+    <meta name="description" content="Monitoramento da qualidade da água de reservatório subterrâneo." />
+    <.live_title default="AquaSense" suffix=" · AquaSense">
       {assigns[:page_title]}
     </.live_title>
     <link phx-track-static rel="stylesheet" href={~p"/assets/css/app.css"} />
@@ -32,7 +33,7 @@
       })();
     </script>
   </head>
-  <body>
+  <body class="bg-canvas text-ink">
     {@inner_content}
   </body>
 </html>

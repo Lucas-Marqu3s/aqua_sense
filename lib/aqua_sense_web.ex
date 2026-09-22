@@ -86,6 +86,8 @@ defmodule AquaSenseWeb do
       import Phoenix.HTML
       # Core UI components
       import AquaSenseWeb.CoreComponents
+      # Cartões, gráficos e avisos do AquaSense
+      import AquaSenseWeb.AquaComponents
 
       # Common modules used in templates
       alias Phoenix.LiveView.JS

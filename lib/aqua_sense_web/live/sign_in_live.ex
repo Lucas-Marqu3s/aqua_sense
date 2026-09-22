@@ -1,12 +1,19 @@
 defmodule AquaSenseWeb.SignInLive do
-  use AquaSenseWeb, :live_view
+  @moduledoc """
+  Entrada do sistema: login e solicitação de cadastro.
 
-  alias AquaSenseWeb.Components.TextField
-  alias AquaSenseWeb.Components.Button, as: MishkaButton
+  As duas telas dividem a mesma composição — painel de apresentação à
+  esquerda, formulário à direita — e se separam por `@live_action`, que o
+  `sign_in_route/1` do AshAuthentication define a partir da rota.
+
+  Os formulários são POST comum para as rotas de `/auth`, não formulários de
+  LiveView: quem valida credencial e devolve o flash é o AshAuthentication.
+  """
+  use AquaSenseWeb, :live_view
 
   on_mount {AquaSenseWeb.LiveUserAuth, :live_no_user}
 
   def mount(_params, _session, socket) do
-    {:ok, assign(socket, error: nil)}
+    {:ok, socket}
   end
 end
