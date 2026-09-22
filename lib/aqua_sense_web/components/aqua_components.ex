@@ -57,6 +57,7 @@ defmodule AquaSenseWeb.AquaComponents do
 
     ~H"""
     <svg
+      id={@id}
       viewBox={"0 0 #{@width} #{@height}"}
       width={@width}
       height={@height}
@@ -129,6 +130,7 @@ defmodule AquaSenseWeb.AquaComponents do
 
     ~H"""
     <svg
+      id={@id}
       viewBox={"0 0 #{@width} #{@height}"}
       width={@width}
       height={@height}

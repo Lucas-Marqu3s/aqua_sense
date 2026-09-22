@@ -32,6 +32,8 @@ defmodule AquaSenseWeb.DashboardLiveTest do
         |> Ash.Changeset.for_update(:confirm_user, %{})
         |> Ash.update!(domain: AquaSense.Accounts, authorize?: false)
 
+      conn = Plug.Test.init_test_session(conn, %{})
+
       %{conn: AshAuthentication.Plug.Helpers.store_in_session(conn, user), user: user}
     end
 

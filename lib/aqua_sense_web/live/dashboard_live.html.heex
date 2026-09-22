@@ -24,7 +24,12 @@
     <.status_banner tone={@banner.tone} title={@banner.title} meta="leitura 14:30 · há 42 s">
       <:detail>{@banner.detail}</:detail>
       <:actions>
-        <button type="button" class="as-btn as-btn-ghost bg-surface" phx-click="set_nav" phx-value-tab="alerts">
+        <button
+          type="button"
+          class="as-btn as-btn-ghost bg-surface"
+          phx-click="set_nav"
+          phx-value-tab="alerts"
+        >
           Ver alertas
         </button>
       </:actions>
@@ -104,15 +109,13 @@
         />
 
         <div class="flex flex-wrap items-center gap-5 border-t border-hairline pt-3">
-          <div
-            :for={
-              stat <- [
-                %{label: "Mínimo 24 h", value: "59,6 %"},
-                %{label: "Máximo 24 h", value: "87,1 %"},
-                %{label: "Média", value: "74,4 %"}
-              ]
-            }
-          >
+          <div :for={
+            stat <- [
+              %{label: "Mínimo 24 h", value: "59,6 %"},
+              %{label: "Máximo 24 h", value: "87,1 %"},
+              %{label: "Média", value: "74,4 %"}
+            ]
+          }>
             <p class="text-[11px] text-ink-3">{stat.label}</p>
             <p class="as-num mt-0.5 text-sm font-semibold text-ink">{stat.value}</p>
           </div>
@@ -156,7 +159,9 @@
         >
           <div class="mb-1 flex items-baseline gap-2">
             <h3 class="text-[12.5px] font-semibold text-ink">{param.label}</h3>
-            <span class="as-num ml-auto text-[13px] font-semibold text-ink">{param.formatted}</span>
+            <span class="as-num ml-auto text-[13px] font-semibold text-ink">
+              {param.formatted}
+            </span>
             <span class="text-[11px] text-ink-3">{param.unit}</span>
           </div>
           <.line_chart
@@ -240,7 +245,9 @@
           <div class="mb-1.5 flex items-baseline gap-2">
             <span class="size-2.5 shrink-0 rounded-sm bg-[var(--as-series)]"></span>
             <h3 class="text-[13px] font-semibold text-ink">{param.label}</h3>
-            <span class="as-num ml-auto text-[13px] font-semibold text-ink">{param.formatted}</span>
+            <span class="as-num ml-auto text-[13px] font-semibold text-ink">
+              {param.formatted}
+            </span>
             <span class="text-[11px] text-ink-3">{param.unit}</span>
           </div>
           <.line_chart
@@ -384,8 +391,10 @@
         <h2 class="text-[14.5px] font-semibold">Usuários cadastrados</h2>
         <span class="as-chip bg-inset text-ink-2">{length(@users)}</span>
         <span class="ml-auto text-xs text-ink-3">
-          {Enum.count(@users, & &1.confirmed_at)} ativos ·
-          {Enum.count(@users, &is_nil(&1.confirmed_at))} aguardando liberação
+          {Enum.count(@users, & &1.confirmed_at)} ativos · {Enum.count(
+            @users,
+            &is_nil(&1.confirmed_at)
+          )} aguardando liberação
         </span>
       </div>
 

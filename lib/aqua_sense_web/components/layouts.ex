@@ -86,7 +86,10 @@ defmodule AquaSenseWeb.Layouts do
             >
               <.icon name={item.icon} class="size-4.5 shrink-0" />
               <span class="grow">{item.label}</span>
-              <span :if={item[:badge]} class="as-chip as-chip-tone as-tone-crit h-5 px-1.5 text-[10.5px]">
+              <span
+                :if={item[:badge]}
+                class="as-chip as-chip-tone as-tone-crit h-5 px-1.5 text-[10.5px]"
+              >
                 {item.badge}
               </span>
             </button>
