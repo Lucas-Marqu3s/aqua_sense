@@ -1,701 +1,430 @@
-<div class="flex h-screen overflow-hidden" style="background:#030712;color:#e2e8f0;" data-theme="dark">
+<Layouts.app
+  flash={@flash}
+  current_user={@current_user}
+  nav={@nav}
+  active={@active_tab}
+  device={@device}
+  crumb="Reservatório Central · Campus"
+  title={@page_title}
+>
+  <:actions>
+    <button type="button" class="as-btn as-btn-ghost">
+      <.icon name="hero-calendar" class="size-3.5" /> Hoje
+    </button>
+    <button type="button" class="as-btn as-btn-ghost">
+      <.icon name="hero-arrow-down-tray" class="size-3.5" /> Exportar
+    </button>
+    <span class="as-chip as-chip-tone as-tone-ok h-8 px-3">
+      <span class="size-1.5 rounded-full bg-ok-mark"></span> Ao vivo
+    </span>
+  </:actions>
 
-  <%!-- ═══ SIDEBAR ═══ --%>
-  <aside class="w-64 flex-none flex flex-col" style="background:#0c1525;border-right:1px solid #1e293b;">
-
-    <%!-- Logo --%>
-    <div class="flex items-center gap-3 px-5 py-5 border-b" style="border-color:#1e293b;">
-      <div class="w-9 h-9 rounded-xl flex items-center justify-center flex-none" style="background:linear-gradient(135deg,#0e4f6e,#0891b2);">
-        <.icon name="hero-beaker" class="w-5 h-5 text-white" />
-      </div>
-      <div>
-        <p class="font-bold text-sm" style="color:#f8fafc;">AquaSense</p>
-        <p class="text-xs" style="color:#475569;">Monitoramento IoT</p>
-      </div>
-    </div>
-
-    <%!-- Navigation --%>
-    <nav class="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
-
-      <p class="text-xs font-semibold uppercase tracking-widest px-3 pb-2" style="color:#334155;">Painel</p>
-
-      <button
-        phx-click="set_nav" phx-value-tab="overview"
-        class={"w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-left transition-colors " <> if(@active_tab == "overview", do: "", else: "hover:bg-slate-800/50")}
-        style={if @active_tab == "overview", do: "background:#0e4f6e33;color:#22d3ee;", else: "color:#64748b;"}
-      >
-        <.icon name="hero-squares-2x2" class="w-4 h-4 flex-none" />
-        Visão Geral
-        <%= if @active_tab == "overview" do %>
-          <div class="ml-auto w-1 h-4 rounded-full" style="background:#22d3ee;"></div>
-        <% end %>
-      </button>
-
-      <button
-        phx-click="set_nav" phx-value-tab="history"
-        class={"w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-left transition-colors " <> if(@active_tab == "history", do: "", else: "hover:bg-slate-800/50")}
-        style={if @active_tab == "history", do: "background:#0e4f6e33;color:#22d3ee;", else: "color:#64748b;"}
-      >
-        <.icon name="hero-chart-bar" class="w-4 h-4 flex-none" />
-        Histórico
-        <%= if @active_tab == "history" do %>
-          <div class="ml-auto w-1 h-4 rounded-full" style="background:#22d3ee;"></div>
-        <% end %>
-      </button>
-
-      <button
-        phx-click="set_nav" phx-value-tab="alerts"
-        class={"w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-left transition-colors " <> if(@active_tab == "alerts", do: "", else: "hover:bg-slate-800/50")}
-        style={if @active_tab == "alerts", do: "background:#0e4f6e33;color:#22d3ee;", else: "color:#64748b;"}
-      >
-        <.icon name="hero-bell" class="w-4 h-4 flex-none" />
-        Alertas
-        <span class="ml-auto text-xs px-1.5 py-0.5 rounded-full font-medium" style="background:#7c2d0e;color:#fb923c;">2</span>
-      </button>
-
-      <div class="pt-4 pb-2">
-        <p class="text-xs font-semibold uppercase tracking-widest px-3" style="color:#334155;">Administração</p>
-      </div>
-
-      <button
-        phx-click="set_nav" phx-value-tab="settings"
-        class={"w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-left transition-colors " <> if(@active_tab == "settings", do: "", else: "hover:bg-slate-800/50")}
-        style={if @active_tab == "settings", do: "background:#0e4f6e33;color:#22d3ee;", else: "color:#64748b;"}
-      >
-        <.icon name="hero-server-stack" class="w-4 h-4 flex-none" />
-        Sistema
-        <%= if @active_tab == "settings" do %>
-          <div class="ml-auto w-1 h-4 rounded-full" style="background:#22d3ee;"></div>
-        <% end %>
-      </button>
-
-      <button
-        phx-click="set_nav" phx-value-tab="users"
-        class={"w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-left transition-colors " <> if(@active_tab == "users", do: "", else: "hover:bg-slate-800/50")}
-        style={if @active_tab == "users", do: "background:#0e4f6e33;color:#22d3ee;", else: "color:#64748b;"}
-      >
-        <.icon name="hero-users" class="w-4 h-4 flex-none" />
-        Usuários
-        <%= if @active_tab == "users" do %>
-          <div class="ml-auto w-1 h-4 rounded-full" style="background:#22d3ee;"></div>
-        <% end %>
-      </button>
-
-    </nav>
-
-    <%!-- Footer: MQTT status + user info --%>
-    <div class="p-4 border-t space-y-3" style="border-color:#1e293b;">
-
-      <div class="flex items-center gap-3">
-        <div class="w-8 h-8 rounded-full flex items-center justify-center flex-none text-xs font-bold" style="background:#0e4f6e;color:#22d3ee;">
-          {String.first(@current_user.name) |> String.upcase()}
-        </div>
-        <div class="flex-1 min-w-0">
-          <p class="text-xs font-medium truncate" style="color:#e2e8f0;">{@current_user.name}</p>
-          <p class="text-xs truncate" style="color:#475569;">{@current_user.email}</p>
-        </div>
-        <.link
-          href="/sign-out"
-          method="delete"
-          class="p-1.5 rounded-lg transition-colors hover:bg-slate-700/50"
-          style="color:#64748b;"
-          title="Sair"
+  <%!-- ══ VISÃO GERAL ══ --%>
+  <div :if={@active_tab == "overview"} class="flex flex-col gap-4">
+    <.status_banner tone={@banner.tone} title={@banner.title} meta="leitura 14:30 · há 42 s">
+      <:detail>{@banner.detail}</:detail>
+      <:actions>
+        <button
+          type="button"
+          class="as-btn as-btn-ghost bg-surface"
+          phx-click="set_nav"
+          phx-value-tab="alerts"
         >
-          <.icon name="hero-arrow-right-on-rectangle" class="w-4 h-4" />
-        </.link>
-      </div>
+          Ver alertas
+        </button>
+      </:actions>
+    </.status_banner>
 
+    <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <.metric_card
+        :for={param <- @parameters}
+        id={param.dom_id}
+        series={param.series}
+        label={param.label}
+        value={param.formatted}
+        unit={param.unit}
+        icon={param.icon}
+        delta={param.delta}
+        delta_dir={param.delta_dir}
+        tone={param.tone}
+        tone_label={param.tone_label}
+        chart={param.spark}
+        limit={param.limit}
+        limit_label={param.limit_label}
+        fill_pct={param.fill_pct}
+        limit_pct={param.limit_pct}
+      />
     </div>
-  </aside>
 
-  <%!-- ═══ MAIN AREA ═══ --%>
-  <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
-
-    <%!-- Header --%>
-    <header class="flex-none flex items-center justify-between px-6 py-4 border-b" style="background:#0c152599;border-color:#1e293b;backdrop-filter:blur(8px);">
-      <div class="flex items-center gap-3">
+    <div class="grid grid-cols-1 gap-4 xl:grid-cols-3">
+      <section class="as-card flex flex-col gap-4 p-5">
         <div>
-          <h1 class="text-base font-semibold" style="color:#f8fafc;">
-            <%= case @active_tab do %>
-              <% "overview"  -> %> Visão Geral
-              <% "history"   -> %> Histórico de Medições
-              <% "alerts"    -> %> Central de Alertas
-              <% "settings"  -> %> Status do Sistema
-              <% "users"     -> %> Gerenciar Usuários
-            <% end %>
-          </h1>
-          <p class="text-xs mt-0.5" style="color:#475569;">Reservatório Subterrâneo</p>
+          <h2 class="text-[14.5px] font-semibold">Coluna de medição</h2>
+          <p class="mt-0.5 text-xs text-ink-3">Capacidade nominal 20.000 L</p>
         </div>
-      </div>
-    </header>
-
-    <%!-- Scrollable content --%>
-    <div class="flex-1 overflow-y-auto p-6 space-y-5">
-
-      <%!-- ══ OVERVIEW TAB ══ --%>
-      <%= if @active_tab == "overview" do %>
-
-        <%!-- Metric Cards --%>
-        <div class="grid grid-cols-4 gap-4">
-
-          <%!-- Water Level --%>
-          <div class="rounded-xl p-4 border relative overflow-hidden" style="background:#0f172a;border-color:#1e293b;">
-            <div class="absolute top-0 left-0 w-1 h-full rounded-l-xl" style="background:#22d3ee;"></div>
-            <div class="flex items-start justify-between mb-3 pl-2">
-              <div>
-                <p class="text-xs font-medium uppercase tracking-wider" style="color:#64748b;">Nível da Água</p>
-                <div class="flex items-end gap-1 mt-1.5">
-                  <span class="text-3xl font-bold" style="color:#f8fafc;">{@metrics.water_level}</span>
-                  <span class="text-sm font-medium pb-0.5" style="color:#64748b;">%</span>
-                </div>
-              </div>
-              <div class="w-9 h-9 rounded-xl flex items-center justify-center flex-none" style="background:#22d3ee1a;">
-                <.icon name="hero-beaker" class="w-5 h-5" style="color:#22d3ee;" />
-              </div>
-            </div>
-            <svg viewBox="0 0 100 30" width="100%" height="30" preserveAspectRatio="none" class="pl-2">
-              <polyline points={@sparklines.level} fill="none" stroke="#22d3ee" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.8"/>
-            </svg>
-            <div class="flex items-center justify-between mt-2 pl-2">
-              <span class="text-xs" style="color:#334155;">Mín. recomendado: 20%</span>
-              <span class="text-xs px-2 py-0.5 rounded-full font-medium" style="background:#14532d33;color:#4ade80;">Normal</span>
-            </div>
+        <.tank id="tanque" level={@level} min_level={20.0} capacity={20_000} />
+        <dl class="flex flex-col">
+          <div
+            :for={
+              stat <- [
+                %{label: "Autonomia estimada", value: "47 h", note: "no consumo médio"},
+                %{label: "Última recarga", value: "há 5 h 30", note: "+27,5 pp em 3 h"},
+                %{label: "Consumo hoje", value: "3.240 L", note: "−8% vs. ontem"}
+              ]
+            }
+            class="flex items-baseline gap-2.5 border-t border-hairline py-2.5"
+          >
+            <dt class="grow text-[12.5px] text-ink-2">{stat.label}</dt>
+            <dd class="text-right">
+              <span class="as-num block text-[13.5px] font-semibold text-ink">{stat.value}</span>
+              <span class="block text-[11px] text-ink-3">{stat.note}</span>
+            </dd>
           </div>
+        </dl>
+      </section>
 
-          <%!-- Temperature --%>
-          <div class="rounded-xl p-4 border relative overflow-hidden" style="background:#0f172a;border-color:#1e293b;">
-            <div class="absolute top-0 left-0 w-1 h-full rounded-l-xl" style="background:#34d399;"></div>
-            <div class="flex items-start justify-between mb-3 pl-2">
-              <div>
-                <p class="text-xs font-medium uppercase tracking-wider" style="color:#64748b;">Temperatura</p>
-                <div class="flex items-end gap-1 mt-1.5">
-                  <span class="text-3xl font-bold" style="color:#f8fafc;">{@metrics.temperature}</span>
-                  <span class="text-sm font-medium pb-0.5" style="color:#64748b;">°C</span>
-                </div>
-              </div>
-              <div class="w-9 h-9 rounded-xl flex items-center justify-center flex-none" style="background:#34d3991a;">
-                <.icon name="hero-fire" class="w-5 h-5" style="color:#34d399;" />
-              </div>
-            </div>
-            <svg viewBox="0 0 100 30" width="100%" height="30" preserveAspectRatio="none" class="pl-2">
-              <polyline points={@sparklines.temperature} fill="none" stroke="#34d399" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.8"/>
-            </svg>
-            <div class="flex items-center justify-between mt-2 pl-2">
-              <span class="text-xs" style="color:#334155;">Limite: ≤ 30 °C</span>
-              <span class="text-xs px-2 py-0.5 rounded-full font-medium" style="background:#14532d33;color:#4ade80;">Normal</span>
-            </div>
+      <section class="as-s-level as-card flex flex-col gap-3.5 p-5 xl:col-span-2">
+        <div class="flex flex-wrap items-start gap-3">
+          <div>
+            <h2 class="text-[14.5px] font-semibold">Nível do reservatório</h2>
+            <p class="mt-0.5 text-xs text-ink-3">
+              Porcentagem da capacidade · 48 leituras nas últimas 24 h
+            </p>
           </div>
-
-          <%!-- Turbidity --%>
-          <div class="rounded-xl p-4 border relative overflow-hidden" style="background:#0f172a;border-color:#1e293b;">
-            <div class="absolute top-0 left-0 w-1 h-full rounded-l-xl" style="background:#a78bfa;"></div>
-            <div class="flex items-start justify-between mb-3 pl-2">
-              <div>
-                <p class="text-xs font-medium uppercase tracking-wider" style="color:#64748b;">Turbidez</p>
-                <div class="flex items-end gap-1 mt-1.5">
-                  <span class="text-3xl font-bold" style="color:#f8fafc;">{@metrics.turbidity}</span>
-                  <span class="text-sm font-medium pb-0.5" style="color:#64748b;">NTU</span>
-                </div>
-              </div>
-              <div class="w-9 h-9 rounded-xl flex items-center justify-center flex-none" style="background:#a78bfa1a;">
-                <.icon name="hero-eye-dropper" class="w-5 h-5" style="color:#a78bfa;" />
-              </div>
-            </div>
-            <svg viewBox="0 0 100 30" width="100%" height="30" preserveAspectRatio="none" class="pl-2">
-              <polyline points={@sparklines.turbidity} fill="none" stroke="#a78bfa" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.8"/>
-            </svg>
-            <div class="flex items-center justify-between mt-2 pl-2">
-              <span class="text-xs" style="color:#334155;">Limite: ≤ 5 NTU</span>
-              <span class="text-xs px-2 py-0.5 rounded-full font-medium" style="background:#14532d33;color:#4ade80;">Normal</span>
-            </div>
-          </div>
-
-          <%!-- Conductivity — alert --%>
-          <div class="rounded-xl p-4 border relative overflow-hidden" style="background:#0f172a;border-color:#854d0e55;box-shadow:0 0 0 1px #854d0e22;">
-            <div class="absolute top-0 left-0 w-1 h-full rounded-l-xl" style="background:#fbbf24;"></div>
-            <div class="flex items-start justify-between mb-3 pl-2">
-              <div>
-                <p class="text-xs font-medium uppercase tracking-wider" style="color:#64748b;">Condutividade</p>
-                <div class="flex items-end gap-1 mt-1.5">
-                  <span class="text-3xl font-bold" style="color:#f8fafc;">{@metrics.conductivity}</span>
-                  <span class="text-sm font-medium pb-0.5" style="color:#64748b;">μS/cm</span>
-                </div>
-              </div>
-              <div class="w-9 h-9 rounded-xl flex items-center justify-center flex-none" style="background:#fbbf241a;">
-                <.icon name="hero-bolt" class="w-5 h-5" style="color:#fbbf24;" />
-              </div>
-            </div>
-            <svg viewBox="0 0 100 30" width="100%" height="30" preserveAspectRatio="none" class="pl-2">
-              <polyline points={@sparklines.conductivity} fill="none" stroke="#fbbf24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.8"/>
-            </svg>
-            <div class="flex items-center justify-between mt-2 pl-2">
-              <span class="text-xs" style="color:#334155;">Limite: ≤ 400 μS/cm</span>
-              <span class="text-xs px-2 py-0.5 rounded-full font-medium" style="background:#45260233;color:#fbbf24;">Atenção</span>
-            </div>
-          </div>
-
         </div>
 
-        <%!-- Tank + Chart --%>
-        <div class="grid grid-cols-3 gap-4">
+        <.line_chart
+          id="grafico-nivel"
+          chart={@level_chart}
+          width={790}
+          height={286}
+          unit="%"
+          ticks={@level_ticks}
+          x_labels={@x_labels}
+          limit={20.0}
+          limit_label="MÍNIMO OPERACIONAL 20%"
+          limit_side={:below}
+          annotation={%{index: 24, text: "recarga do poço"}}
+          label="Nível do reservatório nas últimas 24 horas, entre 59,6% e 87,1% da capacidade, com recarga às 9 h."
+        />
 
-          <%!-- Tank --%>
-          <% tw_inner_h = 170 %>
-          <% tw_px  = trunc(tw_inner_h * @metrics.water_level / 100) %>
-          <% tw_top = 185 - tw_px %>
-          <div class="rounded-xl p-5 border" style="background:#0f172a;border-color:#1e293b;">
-
-            <%!-- Card header --%>
-            <div class="flex items-center gap-2 mb-4">
-              <.icon name="hero-beaker" class="w-4 h-4 text-cyan-400" />
-              <h3 class="text-sm font-semibold" style="color:#cbd5e1;">Nível do Reservatório</h3>
-            </div>
-
-            <%!-- Body: tank visual + stats side by side --%>
-            <div class="flex gap-4">
-
-              <%!-- Tank SVG --%>
-              <svg viewBox="0 0 90 195" width="150" height="325" style="flex:none;">
-                <defs>
-                  <linearGradient id="tw-water" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%"   stop-color="#0e7490"/>
-                    <stop offset="100%" stop-color="#0c4a6e"/>
-                  </linearGradient>
-                  <clipPath id="tw-clip">
-                    <rect x="28" y="15" width="58" height="170" rx="6"/>
-                  </clipPath>
-                </defs>
-
-                <%!-- Tank body background --%>
-                <rect x="28" y="15" width="58" height="170" fill="#020617" rx="6"/>
-
-                <%!-- Water fill --%>
-                <g clip-path="url(#tw-clip)">
-                  <rect x="28" y={tw_top} width="58" height={tw_px} fill="url(#tw-water)"/>
-
-                  <%!-- Wave --%>
-                  <g>
-                    <animateTransform attributeName="transform" type="translate"
-                      values="0,0;-58,0" dur="3s" repeatCount="indefinite" calcMode="linear"/>
-                    <path d={"M28,#{tw_top} C38,#{tw_top-5} 48,#{tw_top-5} 57,#{tw_top} C66,#{tw_top+5} 76,#{tw_top+5} 86,#{tw_top} C96,#{tw_top-5} 106,#{tw_top-5} 115,#{tw_top} C124,#{tw_top+5} 134,#{tw_top+5} 144,#{tw_top} L144,#{tw_top+10} L28,#{tw_top+10} Z"}
-                      fill="#22d3ee" opacity="0.35"/>
-                  </g>
-
-                  <%!-- % text inside water --%>
-                  <%= if tw_px > 40 do %>
-                    <text x="57" y={tw_top + div(tw_px, 2) + 5}
-                      text-anchor="middle" fill="white" font-size="13" font-weight="bold"
-                      opacity="0.7" font-family="system-ui,sans-serif">
-                      {@metrics.water_level}%
-                    </text>
-                  <% end %>
-                </g>
-
-                <%!-- Tank border --%>
-                <rect x="28" y="15" width="58" height="170"
-                  fill="none" stroke="#1e293b" stroke-width="1" rx="6"/>
-
-                <%!-- Dashed level lines + left labels --%>
-                <%= for {pct, y_l} <- [{100, 15}, {75, 57}, {50, 100}, {25, 142}, {0, 185}] do %>
-                  <line x1="28" y1={y_l} x2="86" y2={y_l}
-                    stroke="#1e293b" stroke-width="1" stroke-dasharray="3,3"/>
-                  <text x="24" y={y_l + 3} fill="#334155" font-size="7" text-anchor="end">
-                    {pct}%
-                  </text>
-                <% end %>
-              </svg>
-
-              <%!-- Stats --%>
-              <div class="flex-1 flex flex-col gap-2 min-w-0">
-
-                <div class="flex-1 rounded-lg p-3 border" style="background:#020617;border-color:#1e293b;">
-                  <div class="flex items-center gap-1.5 mb-1.5">
-                    <.icon name="hero-beaker" class="w-3 h-3 text-cyan-600" />
-                    <span class="text-xs" style="color:#475569;">Volume Estimado</span>
-                  </div>
-                  <p class="text-sm font-bold" style="color:#f8fafc;">
-                    {trunc(@metrics.water_level * 200) |> :erlang.integer_to_list() |> to_string()} L
-                  </p>
-                  <p class="text-xs" style="color:#475569;">de 20.000 L</p>
-                </div>
-
-                <div class="flex-1 rounded-lg p-3 border" style="background:#020617;border-color:#1e293b;">
-                  <div class="flex items-center gap-1.5 mb-1.5">
-                    <.icon name="hero-clock" class="w-3 h-3" style="color:#475569;" />
-                    <span class="text-xs" style="color:#475569;">Previsão de Esvaziamento</span>
-                  </div>
-                  <p class="text-sm font-bold" style="color:#f8fafc;">~47 horas</p>
-                  <p class="text-xs" style="color:#475569;">no consumo atual</p>
-                </div>
-
-                <div class="flex-1 rounded-lg p-3 border" style="background:#020617;border-color:#1e293b;">
-                  <div class="flex items-center gap-1.5 mb-1.5">
-                    <.icon name="hero-arrow-path" class="w-3 h-3" style="color:#475569;" />
-                    <span class="text-xs" style="color:#475569;">Última Recarga</span>
-                  </div>
-                  <p class="text-sm font-bold" style="color:#f8fafc;">há 3 horas</p>
-                </div>
-
-              </div>
-            </div>
-          </div>
-
-          <%!-- Historical Chart --%>
-          <div class="col-span-2 rounded-xl p-5 border" style="background:#0f172a;border-color:#1e293b;">
-            <div class="flex items-center justify-between mb-4">
-              <h3 class="text-sm font-semibold" style="color:#cbd5e1;">Histórico — últimas 24h</h3>
-              <div class="flex gap-1 p-1 rounded-lg" style="background:#020617;">
-                <%= for {tab, label} <- [{"level", "Nível"}, {"temperature", "Temp."}, {"turbidity", "Turbidez"}, {"conductivity", "Condut."}] do %>
-                  <button
-                    phx-click="set_chart_tab"
-                    phx-value-tab={tab}
-                    class="px-2.5 py-1 rounded-md text-xs font-medium transition-all"
-                    style={if @chart_tab == tab, do: "background:#0e4f6e;color:#22d3ee;", else: "color:#475569;"}
-                  >
-                    {label}
-                  </button>
-                <% end %>
-              </div>
-            </div>
-
-            <svg viewBox="0 0 520 150" width="100%" class="overflow-visible">
-              <defs>
-                <linearGradient id="chart-fill" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stop-color="#22d3ee" stop-opacity="0.15"/>
-                  <stop offset="100%" stop-color="#22d3ee" stop-opacity="0"/>
-                </linearGradient>
-              </defs>
-              <%= for y <- [10, 42, 74, 107, 140] do %>
-                <line x1="8" y1={y} x2="512" y2={y} stroke="#1e293b" stroke-width="1"/>
-              <% end %>
-              <path d={@chart.area} fill="url(#chart-fill)"/>
-              <polyline points={@chart.polyline} fill="none" stroke="#22d3ee" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              <text x="8"   y="148" fill="#334155" font-size="7" text-anchor="middle">00h</text>
-              <text x="139" y="148" fill="#334155" font-size="7" text-anchor="middle">06h</text>
-              <text x="271" y="148" fill="#334155" font-size="7" text-anchor="middle">12h</text>
-              <text x="402" y="148" fill="#334155" font-size="7" text-anchor="middle">18h</text>
-              <text x="512" y="148" fill="#334155" font-size="7" text-anchor="middle">24h</text>
-            </svg>
-          </div>
-
-        </div>
-
-        <%!-- Alerts + System Status --%>
-        <div class="grid grid-cols-2 gap-4">
-
-          <%!-- Recent Alerts --%>
-          <div class="rounded-xl p-5 border" style="background:#0f172a;border-color:#1e293b;">
-            <div class="flex items-center justify-between mb-4">
-              <h3 class="text-sm font-semibold" style="color:#cbd5e1;">Alertas Recentes</h3>
-              <button phx-click="set_nav" phx-value-tab="alerts" class="text-xs transition-colors hover:underline" style="color:#22d3ee;">
-                Ver todos →
-              </button>
-            </div>
-            <div class="space-y-2">
-              <%= for alert <- Enum.take(@alerts, 3) do %>
-                <div class="flex items-start gap-3 p-3 rounded-lg" style={"background:#{alert_bg_hex(alert.severity)};"}>
-                  <div class="w-1.5 h-1.5 rounded-full flex-none mt-1.5" style={"background:#{alert_dot_hex(alert.severity)};"}></div>
-                  <div class="flex-1 min-w-0">
-                    <p class="text-xs leading-relaxed" style="color:#e2e8f0;">{alert.message}</p>
-                    <p class="text-xs mt-0.5" style="color:#475569;">{alert.time}</p>
-                  </div>
-                  <span class="text-xs px-1.5 py-0.5 rounded-full flex-none whitespace-nowrap" style={"background:#{alert_badge_bg_hex(alert.severity)};color:#{alert_dot_hex(alert.severity)};"}>
-                    {alert_label(alert.severity)}
-                  </span>
-                </div>
-              <% end %>
-            </div>
-          </div>
-
-          <%!-- System Status --%>
-          <div class="rounded-xl p-5 border" style="background:#0f172a;border-color:#1e293b;">
-            <div class="flex items-center justify-between mb-4">
-              <h3 class="text-sm font-semibold" style="color:#cbd5e1;">Status do Sistema</h3>
-              <div class="flex items-center gap-1.5">
-                <div class="w-1.5 h-1.5 rounded-full animate-pulse" style="background:#4ade80;"></div>
-                <span class="text-xs font-medium" style="color:#4ade80;">4/5 online</span>
-              </div>
-            </div>
-            <div class="space-y-2.5">
-              <%= for svc <- @system_status do %>
-                <div class="flex items-center gap-3 py-1.5 border-b last:border-0" style="border-color:#1e293b;">
-                  <div class="w-2 h-2 rounded-full flex-none" style={"background:#{status_dot_hex(svc.status)};"}></div>
-                  <div class="flex-1 min-w-0">
-                    <span class="text-xs font-medium" style="color:#e2e8f0;">{svc.name}</span>
-                    <span class="text-xs ml-2" style="color:#475569;">{svc.detail}</span>
-                  </div>
-                  <span class="text-xs font-medium" style={"color:#{status_dot_hex(svc.status)};"}>
-                    {status_label(svc.status)}
-                  </span>
-                </div>
-              <% end %>
-            </div>
-          </div>
-
-        </div>
-
-      <% end %>
-
-      <%!-- ══ HISTORY TAB ══ --%>
-      <%= if @active_tab == "history" do %>
-        <div class="rounded-xl p-5 border" style="background:#0f172a;border-color:#1e293b;">
-          <div class="flex items-center justify-between mb-6">
-            <div>
-              <h3 class="text-sm font-semibold" style="color:#cbd5e1;">Histórico de Medições</h3>
-              <p class="text-xs mt-0.5" style="color:#475569;">Últimas 24 horas — atualização automática</p>
-            </div>
-            <div class="flex gap-1 p-1 rounded-lg" style="background:#020617;">
-              <%= for {tab, label, color} <- [{"level", "Nível", "#22d3ee"}, {"temperature", "Temperatura", "#34d399"}, {"turbidity", "Turbidez", "#a78bfa"}, {"conductivity", "Condutividade", "#fbbf24"}] do %>
-                <button
-                  phx-click="set_chart_tab"
-                  phx-value-tab={tab}
-                  class="px-3 py-1.5 rounded-md text-xs font-medium transition-all"
-                  style={if @chart_tab == tab, do: "background:#0e4f6e;color:#{color};", else: "color:#475569;"}
-                >
-                  {label}
-                </button>
-              <% end %>
-            </div>
-          </div>
-
-          <svg viewBox="0 0 520 200" width="100%" class="overflow-visible">
-            <defs>
-              <linearGradient id="chart-fill-h" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stop-color="#22d3ee" stop-opacity="0.2"/>
-                <stop offset="100%" stop-color="#22d3ee" stop-opacity="0"/>
-              </linearGradient>
-            </defs>
-            <%= for y <- [10, 50, 90, 130, 170, 190] do %>
-              <line x1="8" y1={y} x2="512" y2={y} stroke="#1e293b" stroke-width="1"/>
-            <% end %>
-            <path d={@chart.area} fill="url(#chart-fill-h)"/>
-            <polyline points={@chart.polyline} fill="none" stroke="#22d3ee" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-            <text x="8"   y="198" fill="#334155" font-size="8" text-anchor="middle">00h</text>
-            <text x="139" y="198" fill="#334155" font-size="8" text-anchor="middle">06h</text>
-            <text x="271" y="198" fill="#334155" font-size="8" text-anchor="middle">12h</text>
-            <text x="402" y="198" fill="#334155" font-size="8" text-anchor="middle">18h</text>
-            <text x="512" y="198" fill="#334155" font-size="8" text-anchor="middle">24h</text>
-          </svg>
-        </div>
-
-        <%!-- Summary cards --%>
-        <div class="grid grid-cols-4 gap-4">
-          <%= for {label, value, unit, color} <- [
-            {"Nível Médio", "75", "%", "#22d3ee"},
-            {"Temp. Média", "23.8", "°C", "#34d399"},
-            {"Turbidez Média", "2.9", "NTU", "#a78bfa"},
-            {"Condut. Média", "308", "μS/cm", "#fbbf24"}
-          ] do %>
-            <div class="rounded-xl p-4 border" style="background:#0f172a;border-color:#1e293b;">
-              <p class="text-xs" style="color:#64748b;">{label}</p>
-              <div class="flex items-end gap-1 mt-2">
-                <span class="text-2xl font-bold" style={"color:#{color};"}>{value}</span>
-                <span class="text-sm pb-0.5" style="color:#475569;">{unit}</span>
-              </div>
-            </div>
-          <% end %>
-        </div>
-      <% end %>
-
-      <%!-- ══ ALERTS TAB ══ --%>
-      <%= if @active_tab == "alerts" do %>
-        <div class="rounded-xl border" style="background:#0f172a;border-color:#1e293b;">
-          <div class="flex items-center justify-between px-5 py-4 border-b" style="border-color:#1e293b;">
-            <h3 class="text-sm font-semibold" style="color:#cbd5e1;">Central de Alertas</h3>
-            <span class="text-xs px-2 py-0.5 rounded-full" style="background:#7c2d0e33;color:#fb923c;">{length(@alerts)} eventos</span>
-          </div>
-          <div class="divide-y" style="--tw-divide-opacity:1;">
-            <%= for alert <- @alerts do %>
-              <div class="flex items-start gap-4 px-5 py-4">
-                <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-none" style={"background:#{alert_bg_hex(alert.severity)};"}>
-                  <div class="w-2 h-2 rounded-full" style={"background:#{alert_dot_hex(alert.severity)};"}></div>
-                </div>
-                <div class="flex-1 min-w-0">
-                  <p class="text-sm" style="color:#e2e8f0;">{alert.message}</p>
-                  <p class="text-xs mt-1" style="color:#475569;">{alert.time}</p>
-                </div>
-                <span class="text-xs px-2.5 py-1 rounded-full font-medium flex-none" style={"background:#{alert_badge_bg_hex(alert.severity)};color:#{alert_dot_hex(alert.severity)};"}>
-                  {alert_label(alert.severity)}
-                </span>
-              </div>
-            <% end %>
+        <div class="flex flex-wrap items-center gap-5 border-t border-hairline pt-3">
+          <div :for={
+            stat <- [
+              %{label: "Mínimo 24 h", value: "59,6 %"},
+              %{label: "Máximo 24 h", value: "87,1 %"},
+              %{label: "Média", value: "74,4 %"}
+            ]
+          }>
+            <p class="text-[11px] text-ink-3">{stat.label}</p>
+            <p class="as-num mt-0.5 text-sm font-semibold text-ink">{stat.value}</p>
           </div>
         </div>
-      <% end %>
+      </section>
+    </div>
 
-      <%!-- ══ SETTINGS TAB ══ --%>
-      <%= if @active_tab == "settings" do %>
-        <div class="grid grid-cols-2 gap-4">
-
-          <div class="rounded-xl border" style="background:#0f172a;border-color:#1e293b;">
-            <div class="flex items-center justify-between px-5 py-4 border-b" style="border-color:#1e293b;">
-              <h3 class="text-sm font-semibold" style="color:#cbd5e1;">Componentes do Sistema</h3>
-              <div class="flex items-center gap-1.5">
-                <div class="w-1.5 h-1.5 rounded-full animate-pulse" style="background:#4ade80;"></div>
-                <span class="text-xs font-medium" style="color:#4ade80;">4/5 online</span>
-              </div>
-            </div>
-            <div class="divide-y" style="border-color:#1e293b;">
-              <%= for svc <- @system_status do %>
-                <div class="flex items-center gap-4 px-5 py-3.5">
-                  <div class="w-2.5 h-2.5 rounded-full flex-none" style={"background:#{status_dot_hex(svc.status)};box-shadow:0 0 6px #{status_dot_hex(svc.status)}55;"}></div>
-                  <div class="flex-1 min-w-0">
-                    <p class="text-sm font-medium" style="color:#e2e8f0;">{svc.name}</p>
-                    <p class="text-xs mt-0.5" style="color:#475569;">{svc.detail}</p>
-                  </div>
-                  <span class="text-xs font-semibold px-2.5 py-1 rounded-full" style={"background:#{status_dot_hex(svc.status)}22;color:#{status_dot_hex(svc.status)};"}>
-                    {status_label(svc.status)}
-                  </span>
-                </div>
-              <% end %>
-            </div>
-          </div>
-
-          <div class="rounded-xl border p-5" style="background:#0f172a;border-color:#1e293b;">
-            <h3 class="text-sm font-semibold mb-4" style="color:#cbd5e1;">Limites da Portaria GM/MS 888/2021</h3>
-            <div class="space-y-0">
-              <%= for {param, limit, unit, color} <- [
-                {"Turbidez", "5", "NTU", "#a78bfa"},
-                {"Temperatura", "30", "°C", "#34d399"},
-                {"Condutividade", "400", "μS/cm", "#fbbf24"},
-                {"pH", "6,0 – 9,5", "", "#22d3ee"},
-                {"Cloro residual livre", "0,2 – 5,0", "mg/L", "#f87171"}
-              ] do %>
-                <div class="flex items-center justify-between py-3 border-b last:border-0" style="border-color:#1e293b;">
-                  <div class="flex items-center gap-2">
-                    <div class="w-1.5 h-1.5 rounded-full" style={"background:#{color};"}></div>
-                    <span class="text-xs" style="color:#94a3b8;">{param}</span>
-                  </div>
-                  <span class="text-xs font-semibold" style={"color:#{color};"}>
-                    {if unit != "", do: "≤ #{limit} #{unit}", else: limit}
-                  </span>
-                </div>
-              <% end %>
-            </div>
-          </div>
-
+    <div class="grid grid-cols-1 gap-4 xl:grid-cols-2">
+      <section class="as-card flex flex-col p-5">
+        <div class="flex items-center gap-2.5 pb-1.5">
+          <h2 class="text-[14.5px] font-semibold">Alertas recentes</h2>
+          <button
+            type="button"
+            class="ml-auto text-[12.5px] font-medium text-level hover:underline"
+            phx-click="set_nav"
+            phx-value-tab="alerts"
+          >
+            Ver todos
+          </button>
         </div>
-      <% end %>
+        <.alert_item
+          :for={alert <- Enum.take(@alerts, 3)}
+          tone={alert.tone}
+          title={alert.title}
+          badge={alert.badge}
+          meta={alert.meta}
+          class="border-t border-hairline py-3"
+        >
+          <:detail>{alert.detail}</:detail>
+        </.alert_item>
+      </section>
 
-      <%!-- ══ USERS TAB ══ --%>
-      <%= if @active_tab == "users" do %>
-        <div class="grid grid-cols-2 gap-5">
-
-          <%!-- Create user form --%>
-          <div class="rounded-xl p-5 border" style="background:#0f172a;border-color:#1e293b;">
-            <div class="flex items-center gap-2 mb-5">
-              <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background:#0e4f6e33;">
-                <.icon name="hero-user-plus" class="w-4 h-4" style="color:#22d3ee;" />
-              </div>
-              <h3 class="text-sm font-semibold" style="color:#cbd5e1;">Novo Usuário</h3>
-            </div>
-
-            <%= if @user_form.success do %>
-              <div class="flex items-center gap-2 px-3 py-3 rounded-lg text-xs mb-4" style="background:#052e1688;border:1px solid #4ade8033;color:#4ade80;">
-                <.icon name="hero-check-circle" class="w-4 h-4 flex-none" />
-                {@user_form.success}
-              </div>
-            <% end %>
-
-            <%= if @user_form.error do %>
-              <div class="flex items-center gap-2 px-3 py-3 rounded-lg text-xs mb-4" style="background:#450a0a88;border:1px solid #f8717133;color:#fca5a5;">
-                <.icon name="hero-exclamation-circle" class="w-4 h-4 flex-none" />
-                {@user_form.error}
-              </div>
-            <% end %>
-
-            <form phx-submit="create_user" class="space-y-3">
-              <div>
-                <label class="block text-xs font-medium mb-1.5" style="color:#64748b;">Nome completo</label>
-                <div class="flex items-center gap-2 px-3 py-2.5 rounded-lg border" style="background:#020617;border-color:#1e293b;">
-                  <.icon name="hero-user" class="w-3.5 h-3.5 flex-none" style="color:#475569;" />
-                  <input type="text" name="name" value={@user_form.name} placeholder="João da Silva" required
-                    class="flex-1 bg-transparent text-sm outline-none" style="color:#e2e8f0;" />
-                </div>
-              </div>
-
-              <div>
-                <label class="block text-xs font-medium mb-1.5" style="color:#64748b;">Email</label>
-                <div class="flex items-center gap-2 px-3 py-2.5 rounded-lg border" style="background:#020617;border-color:#1e293b;">
-                  <.icon name="hero-envelope" class="w-3.5 h-3.5 flex-none" style="color:#475569;" />
-                  <input type="email" name="email" value={@user_form.email} placeholder="joao@email.com" required
-                    class="flex-1 bg-transparent text-sm outline-none" style="color:#e2e8f0;" />
-                </div>
-              </div>
-
-              <div>
-                <label class="block text-xs font-medium mb-1.5" style="color:#64748b;">Senha</label>
-                <div class="flex items-center gap-2 px-3 py-2.5 rounded-lg border" style="background:#020617;border-color:#1e293b;">
-                  <.icon name="hero-lock-closed" class="w-3.5 h-3.5 flex-none" style="color:#475569;" />
-                  <input type="password" name="password" placeholder="mínimo 8 caracteres" required
-                    class="flex-1 bg-transparent text-sm outline-none" style="color:#e2e8f0;" />
-                </div>
-              </div>
-
-              <button type="submit"
-                class="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-semibold mt-2 transition-all"
-                style="background:linear-gradient(135deg,#0e4f6e,#0891b2);color:#ffffff;">
-                <.icon name="hero-user-plus" class="w-4 h-4" />
-                Criar Usuário
-              </button>
-            </form>
-          </div>
-
-          <%!-- Users list --%>
-          <div class="rounded-xl border" style="background:#0f172a;border-color:#1e293b;">
-            <div class="flex items-center justify-between px-5 py-4 border-b" style="border-color:#1e293b;">
-              <div class="flex items-center gap-2">
-                <h3 class="text-sm font-semibold" style="color:#cbd5e1;">Usuários Cadastrados</h3>
-                <span class="text-xs px-2 py-0.5 rounded-full font-medium" style="background:#0e4f6e33;color:#22d3ee;">{length(@users)}</span>
-              </div>
-              <div class="flex items-center gap-1.5">
-                <span class="text-xs" style="color:#475569;">
-                  {Enum.count(@users, & &1.confirmed_at)} ativos
-                </span>
-                <span style="color:#334155;">·</span>
-                <span class="text-xs" style="color:#fb923c;">
-                  {Enum.count(@users, &is_nil(&1.confirmed_at))} pendentes
-                </span>
-              </div>
-            </div>
-
-            <%= if Enum.empty?(@users) do %>
-              <div class="flex flex-col items-center justify-center py-12 text-center">
-                <.icon name="hero-users" class="w-10 h-10 mb-3" style="color:#1e293b;" />
-                <p class="text-sm" style="color:#475569;">Nenhum usuário cadastrado.</p>
-              </div>
-            <% else %>
-              <div class="divide-y" style="border-color:#1e293b;">
-                <%= for user <- @users do %>
-                  <div class="flex items-center gap-3 px-5 py-3.5">
-                    <div class="w-9 h-9 rounded-full flex items-center justify-center flex-none text-sm font-bold" style="background:#0e4f6e33;color:#22d3ee;">
-                      {String.first(user.name) |> String.upcase()}
-                    </div>
-                    <div class="flex-1 min-w-0">
-                      <p class="text-sm font-medium truncate" style="color:#e2e8f0;">{user.name}</p>
-                      <p class="text-xs truncate" style="color:#475569;">{user.email}</p>
-                    </div>
-                    <%= if user.confirmed_at do %>
-                      <span class="text-xs px-2.5 py-1 rounded-full font-medium" style="background:#14532d33;color:#4ade80;">Ativo</span>
-                    <% else %>
-                      <button
-                        phx-click="confirm_user"
-                        phx-value-id={user.id}
-                        class="text-xs px-2.5 py-1 rounded-lg font-medium transition-all"
-                        style="background:#0e4f6e44;color:#22d3ee;border:1px solid #22d3ee33;"
-                      >
-                        Liberar
-                      </button>
-                    <% end %>
-                  </div>
-                <% end %>
-              </div>
-            <% end %>
-          </div>
-
+      <section class="as-card flex flex-col p-5">
+        <div class="flex items-center gap-2.5 pb-1.5">
+          <h2 class="text-[14.5px] font-semibold">Demais parâmetros · 24 h</h2>
+          <span class="ml-auto text-[11px] text-ink-3">— — limite legal</span>
         </div>
-      <% end %>
-
+        <div
+          :for={param <- Enum.reject(@parameters, &(&1.key == :level))}
+          class={["border-t border-hairline py-3", series_class(param.series)]}
+        >
+          <div class="mb-1 flex items-baseline gap-2">
+            <h3 class="text-[12.5px] font-semibold text-ink">{param.label}</h3>
+            <span class="as-num ml-auto text-[13px] font-semibold text-ink">
+              {param.formatted}
+            </span>
+            <span class="text-[11px] text-ink-3">{param.unit}</span>
+          </div>
+          <.line_chart
+            id={"mini-#{param.key}"}
+            chart={param.small}
+            width={320}
+            height={116}
+            unit={param.unit}
+            ticks={param.small_ticks}
+            decimals={param.decimals}
+            x_labels={[
+              %{index: 0, text: "00h", anchor: "start"},
+              %{index: 24, text: "12h", anchor: "middle"},
+              %{index: 47, text: "agora", anchor: "end"}
+            ]}
+            limit={param.limit}
+            label={"#{param.label} nas últimas 24 horas, agora em #{param.formatted} #{param.unit}."}
+          />
+        </div>
+      </section>
     </div>
   </div>
-</div>
+
+  <%!-- ══ HISTÓRICO ══ --%>
+  <div :if={@active_tab == "history"} class="flex flex-col gap-4">
+    <div class="as-seg w-fit" role="group" aria-label="Parâmetro em destaque">
+      <button
+        :for={param <- @parameters}
+        type="button"
+        aria-pressed={to_string(@chart_tab == Atom.to_string(param.key))}
+        phx-click="set_chart_tab"
+        phx-value-tab={param.key}
+      >
+        {param.label}
+      </button>
+    </div>
+
+    <section class={["as-card flex flex-col gap-3.5 p-5", series_class(@history.series)]}>
+      <div class="flex flex-wrap items-start gap-3">
+        <div>
+          <h2 class="text-[15px] font-semibold">{@history.label}</h2>
+          <p class="mt-0.5 text-xs text-ink-3">
+            {@history.unit} · {@history.limit_label} (Portaria GM/MS nº 888/2021) · 48 leituras
+          </p>
+        </div>
+        <div class="ml-auto flex flex-wrap items-center gap-4">
+          <span class="flex items-center gap-2 text-xs text-ink-2">
+            <span class="h-0.5 w-3.5 rounded-sm bg-[var(--as-series)]"></span> leitura
+          </span>
+          <span class="flex items-center gap-2 text-xs text-ink-2">
+            <span class="w-3.5 border-t-2 border-dashed border-crit-mark"></span> limite legal
+          </span>
+        </div>
+      </div>
+
+      <.line_chart
+        id="grafico-historico"
+        chart={@history_chart}
+        width={1104}
+        height={340}
+        unit={@history.unit}
+        ticks={@history_ticks}
+        decimals={@history.decimals}
+        x_labels={@x_labels}
+        limit={@history.limit}
+        limit_label="ACIMA DO LIMITE LEGAL"
+        marker_label={@history.formatted}
+        fill={@history.key == :level}
+        label={"#{@history.label} nas últimas 24 horas, agora em #{@history.formatted} #{@history.unit}."}
+      />
+    </section>
+
+    <section class="as-card p-5">
+      <h2 class="text-[14.5px] font-semibold">Todos os parâmetros · mesma janela de 24 h</h2>
+      <p class="mt-0.5 mb-3.5 text-xs text-ink-3">
+        Cada parâmetro na sua própria escala e unidade. A linha do tempo é compartilhada, então
+        quedas e picos simultâneos ficam alinhados na vertical.
+      </p>
+      <div class="grid grid-cols-1 gap-x-6 gap-y-4 md:grid-cols-2">
+        <div :for={param <- @parameters} class={series_class(param.series)}>
+          <div class="mb-1.5 flex items-baseline gap-2">
+            <span class="size-2.5 shrink-0 rounded-sm bg-[var(--as-series)]"></span>
+            <h3 class="text-[13px] font-semibold text-ink">{param.label}</h3>
+            <span class="as-num ml-auto text-[13px] font-semibold text-ink">
+              {param.formatted}
+            </span>
+            <span class="text-[11px] text-ink-3">{param.unit}</span>
+          </div>
+          <.line_chart
+            id={"hist-#{param.key}"}
+            chart={param.small}
+            width={320}
+            height={116}
+            unit={param.unit}
+            ticks={param.small_ticks}
+            decimals={param.decimals}
+            x_labels={[
+              %{index: 0, text: "00h", anchor: "start"},
+              %{index: 24, text: "12h", anchor: "middle"},
+              %{index: 47, text: "agora", anchor: "end"}
+            ]}
+            limit={param.limit}
+            label={"#{param.label} nas últimas 24 horas, agora em #{param.formatted} #{param.unit}."}
+          />
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <%!-- ══ ALERTAS ══ --%>
+  <section :if={@active_tab == "alerts"} class="as-card p-5">
+    <div class="flex items-center gap-2.5 pb-1.5">
+      <h2 class="text-[14.5px] font-semibold">Central de alertas</h2>
+      <span class="as-chip as-chip-tone as-tone-warn">{@open_alerts} em aberto</span>
+      <span class="ml-auto text-xs text-ink-3">{length(@alerts)} eventos nas últimas 24 h</span>
+    </div>
+    <.alert_item
+      :for={alert <- @alerts}
+      tone={alert.tone}
+      title={alert.title}
+      badge={alert.badge}
+      meta={alert.meta}
+      class="border-t border-hairline py-4"
+    >
+      <:detail>{alert.detail}</:detail>
+      <:actions>
+        <button :if={alert.open?} type="button" class="as-btn as-btn-ghost">
+          <.icon name="hero-check" class="size-3.5" /> Reconhecer
+        </button>
+      </:actions>
+    </.alert_item>
+  </section>
+
+  <%!-- ══ SISTEMA ══ --%>
+  <div :if={@active_tab == "settings"} class="grid grid-cols-1 gap-4 xl:grid-cols-2">
+    <section class="as-card p-5">
+      <h2 class="text-[14.5px] font-semibold">Componentes do sistema</h2>
+      <p class="mt-0.5 mb-2 text-xs text-ink-3">
+        {Enum.count(@system_status, &(&1.tone == :ok))} de {length(@system_status)} operando normalmente
+      </p>
+      <div
+        :for={service <- @system_status}
+        class={["flex items-center gap-3 border-t border-hairline py-3", tone_class(service.tone)]}
+      >
+        <span class="size-2 shrink-0 rounded-full bg-[var(--as-tone)]"></span>
+        <div class="min-w-0 grow">
+          <p class="text-[12.5px] font-semibold text-ink">{service.name}</p>
+          <p class="as-num mt-0.5 text-[11.5px] text-ink-3">{service.detail}</p>
+        </div>
+        <.status_chip tone={service.tone} label={service.label} />
+      </div>
+    </section>
+
+    <section class="as-card p-5">
+      <h2 class="text-[14.5px] font-semibold">Limites da Portaria GM/MS nº 888/2021</h2>
+      <p class="mt-0.5 mb-2 text-xs text-ink-3">
+        Valores de referência para água destinada ao consumo humano.
+      </p>
+      <div
+        :for={row <- @legal_limits}
+        class="flex items-center justify-between border-t border-hairline py-3"
+      >
+        <span class="text-[12.5px] text-ink-2">{row.parameter}</span>
+        <span class="as-num text-[12.5px] font-semibold text-ink">{row.limit}</span>
+      </div>
+    </section>
+  </div>
+
+  <%!-- ══ USUÁRIOS ══ --%>
+  <div :if={@active_tab == "users"} class="grid grid-cols-1 gap-4 xl:grid-cols-3">
+    <section class="as-card p-5">
+      <h2 class="text-[14.5px] font-semibold">Novo usuário</h2>
+      <p class="mt-0.5 mb-3.5 text-xs text-ink-3">
+        Contas criadas aqui já entram liberadas, sem passar pela fila de aprovação.
+      </p>
+
+      <p
+        :if={@user_form.success}
+        class="as-tone-ok mb-3.5 flex items-center gap-2 rounded-lg border border-[var(--as-tone)] bg-[var(--as-tone-tint)] p-3 text-[12.5px] text-[var(--as-tone-text)]"
+      >
+        <.icon name="hero-check-circle" class="size-4 shrink-0" />{@user_form.success}
+      </p>
+      <p
+        :if={@user_form.error}
+        class="as-tone-crit mb-3.5 flex items-center gap-2 rounded-lg border border-[var(--as-tone)] bg-[var(--as-tone-tint)] p-3 text-[12.5px] text-[var(--as-tone-text)]"
+      >
+        <.icon name="hero-x-circle" class="size-4 shrink-0" />{@user_form.error}
+      </p>
+
+      <form id="create-user-form" phx-submit="create_user" class="flex flex-col gap-1">
+        <.input
+          id="new-user-name"
+          name="name"
+          value={@user_form.name}
+          type="text"
+          label="Nome completo"
+          placeholder="Maria Oliveira"
+          required
+        />
+        <.input
+          id="new-user-email"
+          name="email"
+          value={@user_form.email}
+          type="email"
+          label="E-mail"
+          placeholder="maria@facens.br"
+          required
+        />
+        <.input
+          id="new-user-password"
+          name="password"
+          value=""
+          type="password"
+          label="Senha provisória"
+          placeholder="mínimo 8 caracteres"
+          minlength="8"
+          required
+        />
+        <button id="create-user-submit" type="submit" class="as-btn as-btn-primary mt-2 w-full">
+          <.icon name="hero-user-plus" class="size-4" /> Criar usuário
+        </button>
+      </form>
+    </section>
+
+    <section class="as-card p-5 xl:col-span-2">
+      <div class="flex flex-wrap items-center gap-2.5 pb-1.5">
+        <h2 class="text-[14.5px] font-semibold">Usuários cadastrados</h2>
+        <span class="as-chip bg-inset text-ink-2">{length(@users)}</span>
+        <span class="ml-auto text-xs text-ink-3">
+          {Enum.count(@users, & &1.confirmed_at)} ativos · {Enum.count(
+            @users,
+            &is_nil(&1.confirmed_at)
+          )} aguardando liberação
+        </span>
+      </div>
+
+      <p :if={@users == []} class="border-t border-hairline py-10 text-center text-sm text-ink-3">
+        Nenhum usuário cadastrado ainda.
+      </p>
+
+      <div
+        :for={user <- @users}
+        class="flex items-center gap-3 border-t border-hairline py-3"
+        id={"user-#{user.id}"}
+      >
+        <span class="flex size-9 shrink-0 items-center justify-center rounded-full bg-level-tint text-[12.5px] font-bold text-level">
+          {user.name |> String.first() |> String.upcase()}
+        </span>
+        <div class="min-w-0 grow">
+          <p class="truncate text-[13.5px] font-semibold text-ink">{user.name}</p>
+          <p class="truncate text-xs text-ink-3">{user.email}</p>
+        </div>
+        <.status_chip :if={user.confirmed_at} tone={:ok} label="Ativo" />
+        <button
+          :if={is_nil(user.confirmed_at)}
+          type="button"
+          class="as-btn as-btn-ghost"
+          phx-click="confirm_user"
+          phx-value-id={user.id}
+        >
+          Liberar acesso
+        </button>
+      </div>
+    </section>
+  </div>
+</Layouts.app>

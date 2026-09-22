@@ -45,7 +45,10 @@ defmodule AquaSenseWeb.AuthController do
   # on a fixed shape.
   defp unconfirmed_user?(%AshAuthentication.Errors.UnconfirmedUser{}), do: true
   defp unconfirmed_user?(%{caused_by: caused_by}), do: unconfirmed_user?(caused_by)
-  defp unconfirmed_user?(%{errors: errors}) when is_list(errors), do: Enum.any?(errors, &unconfirmed_user?/1)
+
+  defp unconfirmed_user?(%{errors: errors}) when is_list(errors),
+    do: Enum.any?(errors, &unconfirmed_user?/1)
+
   defp unconfirmed_user?(_), do: false
 
   def sign_out(conn, _params) do

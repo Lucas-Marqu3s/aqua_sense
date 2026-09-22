@@ -106,14 +106,327 @@
 
 /* This file is for your main application CSS */
 
-/* Water wave animation for tank visualization */
-@keyframes aqua-wave-slide {
-  from { transform: translateX(0); }
-  to   { transform: translateX(-50%); }
+/* ═══════════════════════════════════════════════════════════════════════════
+   AquaSense — tokens de design
+
+   Toda cor da interface sai daqui. Os templates usam as utilidades geradas
+   (bg-surface, text-ink-2, stroke-level, …) e nunca hexadecimal solto.
+
+   Paleta dos parâmetros validada para daltonismo (ΔE ≥ 8 entre vizinhos) e
+   contraste ≥ 4,5:1 sobre a superfície dos cartões, nos dois temas. Verde,
+   âmbar e vermelho ficam reservados para situação: nunca identificam série.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+:root,
+[data-theme="light"] {
+  --as-canvas: #f4f7fa;
+  --as-surface: #ffffff;
+  --as-inset: #f7f9fb;
+  --as-line: #e2e8ee;
+  --as-line-2: #cbd5e0;
+
+  --as-ink: #0e1a24;
+  --as-ink-2: #47596b;
+  --as-ink-3: #5f7183;
+
+  --as-level: #2a78d6;
+  --as-temp: #eb6834;
+  --as-turb: #4a3aa7;
+  --as-cond: #c94a7c;
+
+  --as-ok: #0a7d0a;
+  --as-warn: #8a5a00;
+  --as-crit: #c22b2b;
+
+  --as-ok-tint: rgb(12 163 12 / 10%);
+  --as-warn-tint: rgb(250 178 25 / 18%);
+  --as-crit-tint: rgb(208 59 59 / 10%);
+  --as-level-tint: rgb(42 120 214 / 12%);
+
+  --as-grid: #eaeef3;
+  --as-axis: #cbd5e0;
+  --as-focus: #1c5cab;
+  --as-ghost: rgb(14 26 36 / 4%);
 }
 
-.aqua-wave-anim {
-  animation: aqua-wave-slide 3s linear infinite;
+[data-theme="dark"] {
+  --as-canvas: #0a1017;
+  --as-surface: #121c26;
+  --as-inset: #0d1620;
+  --as-line: #1e2c3a;
+  --as-line-2: #2b3c4d;
+
+  --as-ink: #eaf1f7;
+  --as-ink-2: #a3b4c4;
+  --as-ink-3: #7b8da0;
+
+  --as-level: #3987e5;
+  --as-temp: #d95926;
+  --as-turb: #9085e9;
+  --as-cond: #d55181;
+
+  --as-ok: #0ca30c;
+  --as-warn: #fab219;
+  --as-crit: #d03b3b;
+
+  --as-ok-tint: rgb(12 163 12 / 14%);
+  --as-warn-tint: rgb(250 178 25 / 14%);
+  --as-crit-tint: rgb(208 59 59 / 16%);
+  --as-level-tint: rgb(57 135 229 / 20%);
+
+  --as-grid: #1b2835;
+  --as-axis: #2b3c4d;
+  --as-focus: #7fc4ff;
+  --as-ghost: rgb(255 255 255 / 5%);
+}
+
+/* O mesmo bloco escuro para quem deixou o tema em "sistema". */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --as-canvas: #0a1017;
+    --as-surface: #121c26;
+    --as-inset: #0d1620;
+    --as-line: #1e2c3a;
+    --as-line-2: #2b3c4d;
+
+    --as-ink: #eaf1f7;
+    --as-ink-2: #a3b4c4;
+    --as-ink-3: #7b8da0;
+
+    --as-level: #3987e5;
+    --as-temp: #d95926;
+    --as-turb: #9085e9;
+    --as-cond: #d55181;
+
+    --as-ok: #0ca30c;
+    --as-warn: #fab219;
+    --as-crit: #d03b3b;
+
+    --as-ok-tint: rgb(12 163 12 / 14%);
+    --as-warn-tint: rgb(250 178 25 / 14%);
+    --as-crit-tint: rgb(208 59 59 / 16%);
+    --as-level-tint: rgb(57 135 229 / 20%);
+
+    --as-grid: #1b2835;
+    --as-axis: #2b3c4d;
+    --as-focus: #7fc4ff;
+    --as-ghost: rgb(255 255 255 / 5%);
+  }
+}
+
+/* Marcas de situação — iguais nos dois temas, para que a mesma cor signifique
+   sempre a mesma coisa. Os tokens --as-ok/warn/crit acima são as variantes
+   seguras para texto pequeno; estas são para preenchimentos e traços. */
+:root {
+  --as-ok-mark: #0ca30c;
+  --as-warn-mark: #fab219;
+  --as-crit-mark: #d03b3b;
+}
+
+@theme {
+  --font-sans:
+    "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+    sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+
+  --color-canvas: var(--as-canvas);
+  --color-surface: var(--as-surface);
+  --color-inset: var(--as-inset);
+  --color-hairline: var(--as-line);
+  --color-hairline-2: var(--as-line-2);
+
+  --color-ink: var(--as-ink);
+  --color-ink-2: var(--as-ink-2);
+  --color-ink-3: var(--as-ink-3);
+
+  --color-level: var(--as-level);
+  --color-temp: var(--as-temp);
+  --color-turb: var(--as-turb);
+  --color-cond: var(--as-cond);
+  --color-level-tint: var(--as-level-tint);
+
+  --color-ok: var(--as-ok);
+  --color-warn: var(--as-warn);
+  --color-crit: var(--as-crit);
+  --color-ok-mark: var(--as-ok-mark);
+  --color-warn-mark: var(--as-warn-mark);
+  --color-crit-mark: var(--as-crit-mark);
+  --color-ok-tint: var(--as-ok-tint);
+  --color-warn-tint: var(--as-warn-tint);
+  --color-crit-tint: var(--as-crit-tint);
+
+  --color-grid: var(--as-grid);
+  --color-axis: var(--as-axis);
+  --color-ghost: var(--as-ghost);
+}
+
+/* ── Peças recorrentes da interface ──────────────────────────────────────── */
+
+.as-card {
+  background: var(--as-surface);
+  border: 1px solid var(--as-line);
+  border-radius: 14px;
+}
+
+.as-eyebrow {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--as-ink-3);
+}
+
+/* Número medido: tabular para a coluna não dançar a cada leitura. */
+.as-num {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+.as-field {
+  width: 100%;
+  height: 46px;
+  padding: 0 13px;
+  border-radius: 9px;
+  border: 1px solid var(--as-line-2);
+  background: var(--as-inset);
+  color: var(--as-ink);
+  font-size: 14.5px;
+  outline: none;
+  transition: border-color 120ms ease, box-shadow 120ms ease;
+}
+
+.as-field::placeholder {
+  color: var(--as-ink-3);
+}
+
+.as-field:focus {
+  border-color: var(--as-level);
+  box-shadow: 0 0 0 3px var(--as-level-tint);
+}
+
+.as-field-error {
+  border-color: var(--as-crit-mark);
+}
+
+.as-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 48px;
+  padding: 0 18px;
+  border-radius: 9px;
+  font-size: 14.5px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 0;
+  transition: filter 120ms ease, background-color 120ms ease;
+}
+
+.as-btn-primary {
+  background: var(--as-level);
+  color: #fff;
+}
+
+.as-btn-primary:hover {
+  filter: brightness(1.08);
+}
+
+.as-btn-ghost {
+  height: 34px;
+  padding: 0 13px;
+  border-radius: 8px;
+  border: 1px solid var(--as-line-2);
+  background: transparent;
+  color: var(--as-ink-2);
+  font-size: 12.5px;
+  font-weight: 500;
+}
+
+.as-btn-ghost:hover {
+  background: var(--as-ghost);
+  color: var(--as-ink);
+}
+
+.as-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 24px;
+  padding: 0 9px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.as-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  width: 100%;
+  padding: 0 12px;
+  height: 40px;
+  border-radius: 9px;
+  font-size: 13.5px;
+  color: var(--as-ink-2);
+  text-align: left;
+  cursor: pointer;
+  border: 0;
+  background: transparent;
+  transition: background-color 120ms ease, color 120ms ease;
+}
+
+.as-nav-item:hover {
+  background: var(--as-ghost);
+  color: var(--as-ink);
+}
+
+.as-nav-item[aria-current="page"] {
+  background: var(--as-ghost);
+  color: var(--as-ink);
+  font-weight: 600;
+  box-shadow: inset 2px 0 0 var(--as-level);
+}
+
+.as-seg {
+  display: flex;
+  gap: 2px;
+  padding: 3px;
+  background: var(--as-inset);
+  border: 1px solid var(--as-line);
+  border-radius: 9px;
+}
+
+.as-seg button {
+  height: 28px;
+  padding: 0 12px;
+  border-radius: 6px;
+  border: 0;
+  background: transparent;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--as-ink-3);
+  cursor: pointer;
+  transition: background-color 120ms ease, color 120ms ease;
+}
+
+.as-seg button:hover {
+  color: var(--as-ink);
+}
+
+.as-seg button[aria-pressed="true"] {
+  background: var(--as-surface);
+  color: var(--as-ink);
+  font-weight: 600;
+}
+
+/* Foco sempre visível — vale para qualquer coisa que receba Tab. */
+:focus-visible {
+  outline: 2px solid var(--as-focus);
+  outline-offset: 2px;
+  border-radius: 4px;
 }
 
 @theme {
@@ -434,4 +747,43 @@
     --color-stepper-separator-completed-border-dark: var(
         --stepper-separator-completed-border-dark
     );
+}
+
+/* ── Série e situação como variável local ─────────────────────────────────
+   O componente marca qual parâmetro (ou qual situação) ele representa e
+   todo o SVG lá dentro pinta com var(--as-series) / var(--as-tone). Assim
+   existe um caminho de código só para os quatro parâmetros.              */
+
+.as-s-level { --as-series: var(--as-level); }
+.as-s-temp  { --as-series: var(--as-temp); }
+.as-s-turb  { --as-series: var(--as-turb); }
+.as-s-cond  { --as-series: var(--as-cond); }
+
+.as-tone-ok {
+  --as-tone: var(--as-ok-mark);
+  --as-tone-text: var(--as-ok);
+  --as-tone-tint: var(--as-ok-tint);
+}
+
+.as-tone-warn {
+  --as-tone: var(--as-warn-mark);
+  --as-tone-text: var(--as-warn);
+  --as-tone-tint: var(--as-warn-tint);
+}
+
+.as-tone-crit {
+  --as-tone: var(--as-crit-mark);
+  --as-tone-text: var(--as-crit);
+  --as-tone-tint: var(--as-crit-tint);
+}
+
+.as-tone-info {
+  --as-tone: var(--as-level);
+  --as-tone-text: var(--as-level);
+  --as-tone-tint: var(--as-level-tint);
+}
+
+.as-chip-tone {
+  background: var(--as-tone-tint);
+  color: var(--as-tone-text);
 }
