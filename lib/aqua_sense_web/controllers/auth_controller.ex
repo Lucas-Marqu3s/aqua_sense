@@ -16,25 +16,37 @@ defmodule AquaSenseWeb.AuthController do
     |> redirect(to: ~p"/")
   end
 
-  def failure(conn, {:password, :register}, _reason) do
-    conn
-    |> put_flash(:error, "Erro ao criar conta. Verifique os dados informados.")
-    |> redirect(to: ~p"/register")
+  def failure(conn, {:password, :register}, reason) do
+    if unconfirmed_user?(reason) do
+      conn
+      |> put_flash(:info, "Conta criada! Aguarde a liberação pelo administrador para acessar.")
+      |> redirect(to: ~p"/sign-in")
+    else
+      conn
+      |> put_flash(:error, "Erro ao criar conta. Verifique os dados informados.")
+      |> redirect(to: ~p"/register")
+    end
   end
 
-  def failure(conn, _activity, %AshAuthentication.Errors.AuthenticationFailed{
-        caused_by: %AshAuthentication.Errors.UnconfirmedUser{}
-      }) do
-    conn
-    |> put_flash(:error, "Acesso pendente. Aguarde a liberação pelo administrador.")
-    |> redirect(to: ~p"/sign-in")
+  def failure(conn, _activity, reason) do
+    if unconfirmed_user?(reason) do
+      conn
+      |> put_flash(:error, "Acesso pendente. Aguarde a liberação pelo administrador.")
+      |> redirect(to: ~p"/sign-in")
+    else
+      conn
+      |> put_flash(:error, "Email ou senha inválidos.")
+      |> redirect(to: ~p"/sign-in")
+    end
   end
 
-  def failure(conn, _activity, _reason) do
-    conn
-    |> put_flash(:error, "Email ou senha inválidos.")
-    |> redirect(to: ~p"/sign-in")
-  end
+  # AshAuthentication wraps this error differently depending on the code path
+  # (register vs sign-in), so we walk `caused_by`/`errors` instead of matching
+  # on a fixed shape.
+  defp unconfirmed_user?(%AshAuthentication.Errors.UnconfirmedUser{}), do: true
+  defp unconfirmed_user?(%{caused_by: caused_by}), do: unconfirmed_user?(caused_by)
+  defp unconfirmed_user?(%{errors: errors}) when is_list(errors), do: Enum.any?(errors, &unconfirmed_user?/1)
+  defp unconfirmed_user?(_), do: false
 
   def sign_out(conn, _params) do
     return_to = get_session(conn, :return_to) || ~p"/"
