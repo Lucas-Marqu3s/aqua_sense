@@ -287,7 +287,7 @@ defmodule AquaSenseWeb.AquaComponents do
   attr :icon, :string, required: true
   attr :delta, :string, required: true
   attr :delta_dir, :atom, default: :up, values: [:up, :down]
-  attr :tone, :atom, default: :ok, values: [:ok, :warn, :crit]
+  attr :tone, :atom, default: :ok, values: [:ok, :warn, :crit, :info]
   attr :tone_label, :string, required: true
   attr :chart, Chart, required: true
   attr :limit, :float, default: nil
@@ -297,7 +297,10 @@ defmodule AquaSenseWeb.AquaComponents do
 
   def metric_card(assigns) do
     ~H"""
-    <div class={["as-card p-4 flex flex-col gap-3", series_class(@series), tone_class(@tone)]}>
+    <div
+      id={@id}
+      class={["as-card p-4 flex flex-col gap-3", series_class(@series), tone_class(@tone)]}
+    >
       <div class="flex items-center gap-2">
         <.icon name={@icon} class="size-4 shrink-0 text-[var(--as-series)]" />
         <span class="as-eyebrow grow">{@label}</span>
@@ -316,7 +319,7 @@ defmodule AquaSenseWeb.AquaComponents do
         </span>
       </div>
 
-      <.sparkline id={@id} chart={@chart} width={240} height={44} limit={@limit} />
+      <.sparkline id={"#{@id}-spark"} chart={@chart} width={240} height={44} limit={@limit} />
 
       <div class="flex flex-col gap-1.5">
         <div class="relative h-[18px]">

@@ -23,6 +23,12 @@ end
 config :aqua_sense, AquaSenseWeb.Endpoint,
   http: [port: String.to_integer(System.get_env("PORT", "4000"))]
 
+config :aqua_sense, :mqtt,
+  host: System.get_env("MQTT_HOST", "localhost"),
+  port: String.to_integer(System.get_env("MQTT_PORT", "1883")),
+  username: System.get_env("MQTT_USERNAME"),
+  password: System.get_env("MQTT_PASSWORD")
+
 if config_env() == :prod do
   database_url =
     System.get_env("DATABASE_URL") ||

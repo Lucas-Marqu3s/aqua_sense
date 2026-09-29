@@ -55,7 +55,7 @@ config :spark,
 config :aqua_sense,
   ecto_repos: [AquaSense.Repo],
   generators: [timestamp_type: :utc_datetime],
-  ash_domains: [AquaSense.Accounts]
+  ash_domains: [AquaSense.Accounts, AquaSense.Monitoring]
 
 # Configure the endpoint
 config :aqua_sense, AquaSenseWeb.Endpoint,

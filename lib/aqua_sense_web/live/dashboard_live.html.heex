@@ -100,12 +100,11 @@
           height={286}
           unit="%"
           ticks={@level_ticks}
-          x_labels={@x_labels}
+          x_labels={@level_x_labels}
           limit={20.0}
           limit_label="MÍNIMO OPERACIONAL 20%"
           limit_side={:below}
-          annotation={%{index: 24, text: "recarga do poço"}}
-          label="Nível do reservatório nas últimas 24 horas, entre 59,6% e 87,1% da capacidade, com recarga às 9 h."
+          label={"Nível do reservatório nas últimas 24 horas, agora em #{Format.number(@level, 1)}%."}
         />
 
         <div class="flex flex-wrap items-center gap-5 border-t border-hairline pt-3">
@@ -172,11 +171,7 @@
             unit={param.unit}
             ticks={param.small_ticks}
             decimals={param.decimals}
-            x_labels={[
-              %{index: 0, text: "00h", anchor: "start"},
-              %{index: 24, text: "12h", anchor: "middle"},
-              %{index: 47, text: "agora", anchor: "end"}
-            ]}
+            x_labels={param.x_labels}
             limit={param.limit}
             label={"#{param.label} nas últimas 24 horas, agora em #{param.formatted} #{param.unit}."}
           />
@@ -225,7 +220,7 @@
         unit={@history.unit}
         ticks={@history_ticks}
         decimals={@history.decimals}
-        x_labels={@x_labels}
+        x_labels={@history.x_labels}
         limit={@history.limit}
         limit_label="ACIMA DO LIMITE LEGAL"
         marker_label={@history.formatted}
@@ -258,11 +253,7 @@
             unit={param.unit}
             ticks={param.small_ticks}
             decimals={param.decimals}
-            x_labels={[
-              %{index: 0, text: "00h", anchor: "start"},
-              %{index: 24, text: "12h", anchor: "middle"},
-              %{index: 47, text: "agora", anchor: "end"}
-            ]}
+            x_labels={param.x_labels}
             limit={param.limit}
             label={"#{param.label} nas últimas 24 horas, agora em #{param.formatted} #{param.unit}."}
           />

@@ -2,234 +2,29 @@ defmodule AquaSenseWeb.DashboardLive do
   @moduledoc """
   Painel de monitoramento do reservatório.
 
-  As leituras ainda são fixas — o caminho ESP32 → MQTT → banco não está
-  ligado. Ficam todas em `@readings`, já no formato que a consulta real vai
-  devolver (lista de valores em ordem cronológica, mais antigo primeiro),
-  para que trocar a origem seja mexer só em `readings/1`.
+  As leituras vêm de `AquaSense.Monitoring.Reading`, populadas pelo
+  `AquaSense.Monitoring.MqttConsumer` a partir do que o ESP32 publica. O
+  painel assina `"readings:new"` e recarrega a cada leitura nova, então fica
+  sempre no que há de mais recente no banco.
+
+  Não há sensor de turbidez no protótipo — o parâmetro `:turbidity` fica sem
+  entrada em `load_readings/0`, o que basta para cair no mesmo tratamento de
+  "sem sensor" usado quando ainda não chegou nenhuma leitura (banco vazio):
+  `parameter_view/2` mostra o cartão com tom neutro e "—" em vez de inventar
+  um número.
 
   O que o painel mostra é derivado desses valores, não escrito à mão: a
   variação em 24 h, a posição na barra de limite e a situação de cada
-  parâmetro saem de `parameter_view/1`. Mudar uma leitura muda a etiqueta de
+  parâmetro saem de `parameter_view/2`. Mudar uma leitura muda a etiqueta de
   situação junto, que é o mínimo para um painel em que a cor significa algo.
   """
   use AquaSenseWeb, :live_view
 
   alias AquaSense.Chart
   alias AquaSense.Format
+  alias AquaSense.Monitoring.Reading
 
   on_mount {AquaSenseWeb.LiveUserAuth, :live_user_required}
-
-  # 48 leituras = 24 h a cada 30 min.
-  @level [
-    74.2,
-    73.6,
-    73.0,
-    72.4,
-    71.8,
-    71.1,
-    70.5,
-    69.8,
-    69.1,
-    68.4,
-    67.6,
-    66.9,
-    66.1,
-    65.4,
-    64.6,
-    63.9,
-    63.1,
-    62.4,
-    61.8,
-    61.2,
-    60.7,
-    60.3,
-    59.9,
-    59.6,
-    62.8,
-    68.4,
-    74.9,
-    80.2,
-    84.1,
-    86.3,
-    87.1,
-    86.8,
-    86.3,
-    85.7,
-    85.0,
-    84.3,
-    83.5,
-    82.8,
-    82.0,
-    81.3,
-    80.5,
-    79.8,
-    79.0,
-    78.3,
-    77.6,
-    76.9,
-    76.3,
-    75.8
-  ]
-
-  @temperature [
-    23.9,
-    23.8,
-    23.8,
-    23.7,
-    23.7,
-    23.6,
-    23.6,
-    23.5,
-    23.5,
-    23.4,
-    23.4,
-    23.4,
-    23.3,
-    23.3,
-    23.3,
-    23.4,
-    23.5,
-    23.6,
-    23.8,
-    23.9,
-    24.1,
-    24.2,
-    24.3,
-    24.4,
-    24.2,
-    23.9,
-    23.6,
-    23.4,
-    23.3,
-    23.3,
-    23.4,
-    23.5,
-    23.7,
-    23.9,
-    24.1,
-    24.3,
-    24.5,
-    24.7,
-    24.8,
-    24.9,
-    24.9,
-    24.8,
-    24.7,
-    24.6,
-    24.5,
-    24.4,
-    24.3,
-    24.3
-  ]
-
-  @turbidity [
-    1.9,
-    1.9,
-    2.0,
-    2.0,
-    2.1,
-    2.1,
-    2.2,
-    2.2,
-    2.3,
-    2.3,
-    2.4,
-    2.4,
-    2.5,
-    2.5,
-    2.6,
-    2.6,
-    2.7,
-    2.7,
-    2.8,
-    2.8,
-    2.9,
-    2.9,
-    3.0,
-    3.0,
-    4.9,
-    6.2,
-    5.4,
-    4.6,
-    4.0,
-    3.6,
-    3.3,
-    3.1,
-    3.0,
-    2.9,
-    2.9,
-    2.8,
-    2.8,
-    2.8,
-    2.9,
-    2.9,
-    3.0,
-    3.0,
-    3.1,
-    3.1,
-    3.2,
-    3.2,
-    3.2,
-    3.2
-  ]
-
-  @conductivity [
-    286,
-    288,
-    290,
-    292,
-    295,
-    297,
-    299,
-    302,
-    304,
-    306,
-    309,
-    311,
-    313,
-    316,
-    318,
-    320,
-    323,
-    325,
-    327,
-    330,
-    332,
-    334,
-    337,
-    339,
-    330,
-    318,
-    309,
-    304,
-    302,
-    303,
-    306,
-    310,
-    315,
-    320,
-    326,
-    331,
-    337,
-    342,
-    348,
-    353,
-    358,
-    362,
-    367,
-    371,
-    375,
-    378,
-    381,
-    384
-  ]
-
-  @readings %{
-    level: @level,
-    temperature: @temperature,
-    turbidity: @turbidity,
-    conductivity: @conductivity
-  }
 
   # Definição de cada parâmetro monitorado. `limit` é o teto legal da Portaria
   # GM/MS nº 888/2021; `floor` é um piso operacional (só o nível tem).
@@ -356,22 +151,13 @@ defmodule AquaSenseWeb.DashboardLive do
     %{parameter: "Cloro residual livre", limit: "0,2 – 5,0 mg/L"}
   ]
 
-  # Marcas do eixo do tempo: apontam para posições da própria série, então
-  # continuam certas se a janela mudar de tamanho.
-  @x_labels [
-    %{index: 0, text: "00h", anchor: "start"},
-    %{index: 8, text: "04h", anchor: "middle"},
-    %{index: 16, text: "08h", anchor: "middle"},
-    %{index: 24, text: "12h", anchor: "middle"},
-    %{index: 32, text: "16h", anchor: "middle"},
-    %{index: 40, text: "20h", anchor: "middle"},
-    %{index: 47, text: "agora", anchor: "end"}
-  ]
-
   @impl true
   def mount(_params, _session, socket) do
+    if connected?(socket) do
+      Phoenix.PubSub.subscribe(AquaSense.PubSub, "readings:new")
+    end
+
     users = list_users()
-    parameters = Enum.map(@parameters, &parameter_view/1)
     open_alerts = Enum.count(@alerts, & &1.open?)
 
     {:ok,
@@ -380,14 +166,10 @@ defmodule AquaSenseWeb.DashboardLive do
        page_title: "Visão geral",
        active_tab: "overview",
        chart_tab: "conductivity",
-       parameters: parameters,
-       banner: banner(parameters),
-       level: List.last(@level),
        alerts: @alerts,
        open_alerts: open_alerts,
        system_status: @system_status,
        legal_limits: @legal_limits,
-       x_labels: @x_labels,
        nav: nav_groups(open_alerts),
        device: %{
          online?: true,
@@ -397,7 +179,7 @@ defmodule AquaSenseWeb.DashboardLive do
        users: users,
        user_form: %{name: "", email: "", error: nil, success: nil}
      )
-     |> assign_charts()}
+     |> load_and_assign()}
   end
 
   @impl true
@@ -406,7 +188,7 @@ defmodule AquaSenseWeb.DashboardLive do
   end
 
   def handle_event("set_chart_tab", %{"tab" => tab}, socket) do
-    {:noreply, socket |> assign(chart_tab: tab) |> assign_charts()}
+    {:noreply, socket |> assign(chart_tab: tab) |> load_and_assign()}
   end
 
   def handle_event(
@@ -454,6 +236,11 @@ defmodule AquaSenseWeb.DashboardLive do
     end
   end
 
+  @impl true
+  def handle_info(%Phoenix.Socket.Broadcast{topic: "readings:new"}, socket) do
+    {:noreply, load_and_assign(socket)}
+  end
+
   @doc """
   Parâmetro em destaque no histórico, conforme a aba escolhida.
   """
@@ -463,24 +250,93 @@ defmodule AquaSenseWeb.DashboardLive do
 
   # ── montagem dos gráficos ─────────────────────────────────────────────────
 
-  defp assign_charts(socket) do
-    selected = selected_parameter(socket.assigns.parameters, socket.assigns.chart_tab)
+  defp load_and_assign(socket) do
+    readings = load_readings()
+    parameters = Enum.map(@parameters, &parameter_view(&1, readings))
+    selected = selected_parameter(parameters, socket.assigns.chart_tab)
     {min, max} = selected.scale
+    level_values = non_empty(Map.get(readings, :level, []))
 
     assign(socket,
+      parameters: parameters,
+      banner: banner(parameters),
+      level: List.last(level_values),
       # Nível é a série do topo: porcentagem tem zero significativo, então o
       # eixo começa em zero e o preenchimento sob a curva é honesto.
-      level_chart: Chart.build(@level, x0: 44, x1: 740, y0: 16, y1: 250, min: 0, max: 100),
+      level_chart: Chart.build(level_values, x0: 44, x1: 740, y0: 16, y1: 250, min: 0, max: 100),
       level_ticks: Chart.nice_ticks(0, 100, 5),
+      level_x_labels: x_labels(length(level_values)),
       history: selected,
       history_chart:
-        Chart.build(readings(selected.key), x0: 56, x1: 1090, y0: 22, y1: 300, min: min, max: max),
+        Chart.build(non_empty(Map.get(readings, selected.key, [])),
+          x0: 56,
+          x1: 1090,
+          y0: 22,
+          y1: 300,
+          min: min,
+          max: max
+        ),
       history_ticks: Chart.nice_ticks(min, max, 5)
     )
   end
 
-  defp parameter_view(parameter) do
-    values = readings(parameter.key)
+  # Série sem leitura (turbidez, que não tem sensor; ou qualquer parâmetro
+  # antes da primeira publicação do ESP32) precisa de um ponto pra geometria
+  # não quebrar, mas não pode fingir ser uma medição real.
+  defp non_empty([]), do: [0.0]
+  defp non_empty(values), do: values
+
+  # Marcas do eixo do tempo: apontam para posições da própria série, então
+  # continuam certas conforme a janela cresce das primeiras leituras até as
+  # 48 (24 h) de regime — cada série tem o seu, pois uma leitura sem sensor
+  # (1 ponto) não tem o mesmo tamanho de uma série real.
+  defp x_labels(count) when count <= 1 do
+    [%{index: 0, text: "agora", anchor: "start"}]
+  end
+
+  defp x_labels(count) do
+    last = count - 1
+
+    [
+      %{index: 0, text: "00h", anchor: "start"},
+      %{index: div(last, 2), text: "12h", anchor: "middle"},
+      %{index: last, text: "agora", anchor: "end"}
+    ]
+  end
+
+  defp parameter_view(parameter, readings) do
+    case Map.get(readings, parameter.key, []) do
+      [] -> unavailable_parameter_view(parameter)
+      values -> live_parameter_view(parameter, values)
+    end
+  end
+
+  defp unavailable_parameter_view(parameter) do
+    {spark_min, spark_max} = parameter.spark_scale
+    {scale_min, scale_max} = parameter.scale
+    placeholder = [0.0]
+
+    parameter
+    |> Map.merge(%{
+      value: nil,
+      formatted: "—",
+      delta: "—",
+      delta_dir: :up,
+      tone: :info,
+      tone_label: "Sem sensor",
+      fill_pct: 0.0,
+      limit_pct: (parameter.limit || parameter.floor) / parameter.bar_max * 100,
+      spark:
+        Chart.build(placeholder, x0: 0, x1: 240, y0: 6, y1: 38, min: spark_min, max: spark_max),
+      small:
+        Chart.build(placeholder, x0: 40, x1: 296, y0: 10, y1: 92, min: scale_min, max: scale_max),
+      small_ticks: Chart.nice_ticks(scale_min, scale_max, 4),
+      x_labels: x_labels(length(placeholder)),
+      dom_id: "param-#{parameter.key}"
+    })
+  end
+
+  defp live_parameter_view(parameter, values) do
     value = List.last(values)
     first = hd(values)
     {spark_min, spark_max} = parameter.spark_scale
@@ -500,6 +356,7 @@ defmodule AquaSenseWeb.DashboardLive do
       spark: Chart.build(values, x0: 0, x1: 240, y0: 6, y1: 38, min: spark_min, max: spark_max),
       small: Chart.build(values, x0: 40, x1: 296, y0: 10, y1: 92, min: scale_min, max: scale_max),
       small_ticks: Chart.nice_ticks(scale_min, scale_max, 4),
+      x_labels: x_labels(length(values)),
       dom_id: "param-#{parameter.key}"
     })
   end
@@ -550,9 +407,15 @@ defmodule AquaSenseWeb.DashboardLive do
   defp tone_rank(:crit), do: 0
   defp tone_rank(:warn), do: 1
   defp tone_rank(:ok), do: 2
+  defp tone_rank(:info), do: 3
 
   defp banner_title(:crit), do: "1 parâmetro fora do limite legal"
   defp banner_title(:warn), do: "1 parâmetro se aproximando do limite"
+  defp banner_title(:info), do: "Aguardando leituras do sensor"
+
+  defp banner_detail(%{value: nil} = parameter) do
+    "Nenhuma leitura recebida ainda para #{String.downcase(parameter.label)}."
+  end
 
   defp banner_detail(%{limit: limit} = parameter) when is_number(limit) do
     pct = round(parameter.value / limit * 100)
@@ -572,7 +435,19 @@ defmodule AquaSenseWeb.DashboardLive do
 
   # ── auxiliares ────────────────────────────────────────────────────────────
 
-  defp readings(key), do: Map.fetch!(@readings, key)
+  defp load_readings do
+    Reading
+    |> Ash.Query.for_read(:recent, %{limit: 48})
+    |> Ash.read!(domain: AquaSense.Monitoring, authorize?: false)
+    |> Enum.reverse()
+    |> then(fn readings ->
+      %{
+        level: Enum.map(readings, & &1.level),
+        temperature: Enum.map(readings, & &1.temperature),
+        conductivity: Enum.map(readings, & &1.conductivity)
+      }
+    end)
+  end
 
   defp list_users do
     AquaSense.Accounts.User |> Ash.read!(domain: AquaSense.Accounts, authorize?: false)

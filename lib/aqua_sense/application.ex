@@ -12,8 +12,13 @@ defmodule AquaSense.Application do
       AquaSense.Repo,
       {DNSCluster, query: Application.get_env(:aqua_sense, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: AquaSense.PubSub},
-      # Start a worker by calling: AquaSense.Worker.start_link(arg)
-      # {AquaSense.Worker, arg},
+      {Tortoise311.Connection,
+       client_id: AquaSense.MqttConsumer,
+       server: {Tortoise311.Transport.Tcp, host: mqtt_config(:host), port: mqtt_config(:port)},
+       user_name: mqtt_config(:username),
+       password: mqtt_config(:password),
+       handler: {AquaSense.Monitoring.MqttConsumer, []},
+       subscriptions: [{"aquasense/+/leituras", 1}]},
       # Start to serve requests, typically the last entry
       AquaSenseWeb.Endpoint,
       {AshAuthentication.Supervisor, [otp_app: :aqua_sense]}
@@ -24,6 +29,8 @@ defmodule AquaSense.Application do
     opts = [strategy: :one_for_one, name: AquaSense.Supervisor]
     Supervisor.start_link(children, opts)
   end
+
+  defp mqtt_config(key), do: Application.get_env(:aqua_sense, :mqtt)[key]
 
   # Tell Phoenix to update the endpoint configuration
   # whenever the application is updated.
