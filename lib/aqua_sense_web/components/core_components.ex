@@ -273,6 +273,58 @@ defmodule AquaSenseWeb.CoreComponents do
     """
   end
 
+  def input(%{type: "password"} = assigns) do
+    ~H"""
+    <div class="mb-4">
+      <label for={@id}>
+        <span :if={@label} class="mb-1.5 block text-[12.5px] font-semibold text-ink-2">{@label}</span>
+        <span class="relative block">
+          <input
+            type="password"
+            name={@name}
+            id={@id}
+            value={Phoenix.HTML.Form.normalize_value(@type, @value)}
+            class={[
+              @class || "as-field pr-10!",
+              @errors != [] && (@error_class || "as-field-error")
+            ]}
+            {@rest}
+          />
+          <button
+            type="button"
+            id={"#{@id}-toggle"}
+            phx-hook=".TogglePassword"
+            data-input={@id}
+            class="absolute inset-y-0 right-0 flex w-10 items-center justify-center text-ink-3 hover:text-ink"
+            aria-label="Mostrar senha"
+          >
+            <.icon name="hero-eye" class="as-toggle-show size-4.5" />
+            <.icon name="hero-eye-slash" class="as-toggle-hide hidden size-4.5" />
+          </button>
+        </span>
+      </label>
+      <.error :for={msg <- @errors}>{msg}</.error>
+    </div>
+    <script :type={Phoenix.LiveView.ColocatedHook} name=".TogglePassword">
+      export default {
+        mounted() {
+          const input = document.getElementById(this.el.dataset.input)
+          const showIcon = this.el.querySelector(".as-toggle-show")
+          const hideIcon = this.el.querySelector(".as-toggle-hide")
+
+          this.el.addEventListener("click", () => {
+            const willShow = input.type === "password"
+            input.type = willShow ? "text" : "password"
+            showIcon.classList.toggle("hidden", willShow)
+            hideIcon.classList.toggle("hidden", !willShow)
+            this.el.setAttribute("aria-label", willShow ? "Ocultar senha" : "Mostrar senha")
+          })
+        }
+      }
+    </script>
+    """
+  end
+
   # All other inputs text, datetime-local, url, password, etc. are handled here...
   def input(assigns) do
     ~H"""

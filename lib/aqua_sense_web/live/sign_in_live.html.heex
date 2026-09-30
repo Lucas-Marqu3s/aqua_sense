@@ -1,41 +1,33 @@
 <Layouts.app flash={@flash} variant={:bare}>
-  <div class="flex min-h-screen bg-canvas text-ink">
-    <%!-- Painel de apresentação: só a partir de lg. No celular a tela é o formulário. --%>
-    <aside class="hidden w-[760px] shrink-0 flex-col justify-between border-r border-hairline bg-surface p-12 lg:flex">
-      <div class="flex items-center gap-2.5">
-        <span class="flex size-9 shrink-0 items-center justify-center rounded-lg bg-level text-white">
-          <.icon name="hero-beaker" class="size-5" />
-        </span>
-        <span class="text-[19px] font-bold tracking-tight">AquaSense</span>
-      </div>
+  <div class="flex min-h-screen overflow-x-hidden bg-canvas text-ink">
+    <aside class="relative hidden h-screen max-w-[70%] shrink-0 overflow-hidden border-r border-hairline bg-slate-950 lg:block lg:aspect-[1115/941]">
+      <img
+        src={~p"/images/login-hero.png"}
+        alt=""
+        aria-hidden="true"
+        class="size-full object-cover"
+      />
 
-      <div class="flex flex-col gap-11">
-        <div class="flex max-w-[560px] flex-col gap-4">
-          <span class="as-eyebrow">Reservatório subterrâneo · Poço PT-01</span>
-          <h2 class="text-[42px] leading-[1.12] font-bold tracking-tight">
-            Qualidade da água,<br />medida na fonte.
-          </h2>
-          <p class="max-w-[460px] text-[15px] leading-relaxed text-ink-2">
-            Uma leitura a cada 30 minutos, comparada com os limites da Portaria GM/MS nº 888/2021.
-          </p>
+      <div class="absolute inset-0 flex flex-col justify-between pt-4">
+        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-black/10">
         </div>
 
-        <div class="max-w-[560px]">
-          <.well_figure />
-          <p class="as-num mt-3.5 text-xs text-ink-3">sonda a 12 m · leitura a cada 30 min</p>
-        </div>
+        <img
+          src={~p"/images/logo_aquasense.png"}
+          alt="AquaSense"
+          class="relative h-32 w-auto self-start drop-shadow-md"
+        />
       </div>
-
-      <p class="text-xs text-ink-3">TCC · Engenharia de Computação · FACENS</p>
     </aside>
 
-    <div class="flex grow items-center justify-center p-8">
-      <div class="flex w-full max-w-[392px] flex-col gap-6">
-        <div class="flex items-center gap-2.5 lg:hidden">
-          <span class="flex size-8 shrink-0 items-center justify-center rounded-lg bg-level text-white">
-            <.icon name="hero-beaker" class="size-4.5" />
-          </span>
-          <span class="text-[17px] font-bold tracking-tight">AquaSense</span>
+    <div class="flex w-full min-w-0 grow items-center justify-center p-8">
+      <div class="flex w-full max-w-[360px] flex-col gap-6">
+        <div class="flex items-center lg:hidden">
+          <img
+            src={~p"/images/logo_aquasense.png"}
+            alt="AquaSense"
+            class="size-full h-32 object-contain"
+          />
         </div>
 
         <%= if @live_action == :register do %>
@@ -53,6 +45,7 @@
             id="register-form"
             method="post"
             action="/auth/user/password/register"
+            phx-hook=".CheckPasswordMatch"
             class="flex flex-col gap-1"
           >
             <input type="hidden" name="_csrf_token" value={Plug.CSRFProtection.get_csrf_token()} />
@@ -63,7 +56,7 @@
               value=""
               type="text"
               label="Nome completo"
-              placeholder="Maria Oliveira"
+              placeholder="Nome completo"
               autocomplete="name"
               required
             />
@@ -73,7 +66,7 @@
               value=""
               type="email"
               label="E-mail institucional"
-              placeholder="voce@facens.br"
+              placeholder="Digite seu e-mail"
               autocomplete="email"
               required
             />
@@ -98,11 +91,48 @@
               autocomplete="new-password"
               required
             />
+            <p
+              id="register-password-mismatch"
+              class="mt-1.5 mb-3 hidden items-center gap-2 text-[12.5px] text-crit"
+            >
+              <.icon name="hero-exclamation-circle" class="size-5 shrink-0" />
+              As senhas não coincidem. Digite novamente.
+            </p>
 
             <button id="register-submit" type="submit" class="as-btn as-btn-primary mt-2 w-full">
               Enviar solicitação
             </button>
           </form>
+          <script :type={Phoenix.LiveView.ColocatedHook} name=".CheckPasswordMatch">
+            export default {
+              mounted() {
+                const password = this.el.querySelector("#register-password")
+                const confirmation = this.el.querySelector("#register-password-confirmation")
+                const message = this.el.querySelector("#register-password-mismatch")
+
+                this.el.addEventListener("submit", (e) => {
+                  if (password.value === confirmation.value) {
+                    return
+                  }
+
+                  e.preventDefault()
+                  password.classList.add("as-field-error")
+                  confirmation.classList.add("as-field-error")
+                  message.classList.remove("hidden")
+                  message.classList.add("flex")
+                  password.focus()
+                })
+
+                for (const field of [password, confirmation]) {
+                  field.addEventListener("input", () => {
+                    field.classList.remove("as-field-error")
+                    message.classList.add("hidden")
+                    message.classList.remove("flex")
+                  })
+                }
+              }
+            }
+          </script>
 
           <p class="text-center text-xs leading-relaxed text-ink-3">
             Ao enviar, você concorda que seus dados sejam usados apenas para controle de acesso ao
@@ -128,7 +158,7 @@
               value=""
               type="email"
               label="E-mail"
-              placeholder="voce@facens.br"
+              placeholder="Digite seu e-mail"
               autocomplete="email"
               required
             />
@@ -138,7 +168,7 @@
               value=""
               type="password"
               label="Senha"
-              placeholder="••••••••"
+              placeholder="Digite sua senha"
               autocomplete="current-password"
               required
             />
@@ -159,10 +189,6 @@
             <.link navigate="/register" class="font-semibold text-level hover:underline">
               Solicitar cadastro
             </.link>
-          </p>
-
-          <p class="text-center text-[12.5px] leading-relaxed text-ink-3">
-            Novas contas passam por aprovação de um administrador antes do primeiro acesso.
           </p>
         <% end %>
       </div>

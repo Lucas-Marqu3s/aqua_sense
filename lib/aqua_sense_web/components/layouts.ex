@@ -63,14 +63,12 @@ defmodule AquaSenseWeb.Layouts do
     ~H"""
     <div class="flex h-screen overflow-hidden bg-canvas text-ink">
       <aside class="flex w-[244px] shrink-0 flex-col border-r border-hairline bg-surface">
-        <div class="flex items-center gap-2.5 border-b border-hairline px-4 py-4.5">
-          <span class="flex size-8 shrink-0 items-center justify-center rounded-lg bg-level text-white">
-            <.icon name="hero-beaker" class="size-4.5" />
-          </span>
-          <span class="min-w-0">
-            <span class="block text-[14.5px] font-bold tracking-tight">AquaSense</span>
-            <span class="block text-[11px] text-ink-3">Poço PT-01 · Campus</span>
-          </span>
+        <div class="flex items-center gap-2.5 border-b border-hairline px-4 py-3">
+          <img
+            src={~p"/images/logo_aquasense.png"}
+            alt="AquaSense"
+            class="size-full h-28 object-contain"
+          />
         </div>
 
         <nav class="flex grow flex-col gap-0.5 overflow-y-auto px-3 py-3.5">
