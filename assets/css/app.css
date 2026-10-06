@@ -787,3 +787,48 @@
   background: var(--as-tone-tint);
   color: var(--as-tone-text);
 }
+
+/* ── Barra lateral retrátil (desktop) ─────────────────────────────────────
+   Recolhida, vira uma faixa de ícones: textos e blocos marcados com
+   .as-collapsible somem e os itens de navegação centralizam o ícone. */
+@media (min-width: 1024px) {
+  #app-sidebar {
+    transition: width 200ms ease-in-out;
+  }
+  #app-sidebar.is-collapsed {
+    width: 64px;
+  }
+  #app-sidebar.is-collapsed .as-collapsible {
+    display: none;
+  }
+  #app-sidebar.is-collapsed .as-nav-item {
+    justify-content: center;
+    padding-inline: 0;
+  }
+  #app-sidebar.is-collapsed nav {
+    padding-inline: 0.5rem;
+  }
+}
+
+/* Logo: completa quando a barra está aberta, só o símbolo quando recolhida. */
+.as-collapsed-logo {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  #app-sidebar.is-collapsed .as-expanded-logo {
+    display: none;
+  }
+  #app-sidebar.is-collapsed .as-collapsed-logo {
+    display: block;
+  }
+}
+
+/* Recolhida: avatar e sair empilhados no rodapé da faixa de ícones. */
+@media (min-width: 1024px) {
+  #app-sidebar.is-collapsed .as-user-row {
+    flex-direction: column;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+}

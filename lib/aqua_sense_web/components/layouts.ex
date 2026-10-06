@@ -47,7 +47,6 @@ defmodule AquaSenseWeb.Layouts do
     default: "set_nav",
     doc: "evento disparado ao clicar num item da lateral"
 
-  attr :device, :map, default: nil, doc: "%{online?:, label:, detail:} do rodapé da lateral"
 
   slot :actions
   slot :inner_block, required: true
@@ -62,30 +61,50 @@ defmodule AquaSenseWeb.Layouts do
   def app(assigns) do
     ~H"""
     <div class="flex h-screen overflow-hidden bg-canvas text-ink">
-      <aside class="flex w-[244px] shrink-0 flex-col border-r border-hairline bg-surface">
-        <div class="flex items-center gap-2.5 border-b border-hairline px-4 py-3">
+      <%!-- Fundo escurecido atrás da gaveta, só no mobile. Some com a barra. --%>
+      <div
+        id="sidebar-backdrop"
+        class="fixed inset-0 z-40 hidden bg-black/50 lg:hidden"
+        phx-click={close_sidebar()}
+      >
+      </div>
+
+      <%!-- Abaixo de lg é uma gaveta deslizante (fixed + translate); em lg
+      volta a ser parte do layout normal (static), sempre visível. --%>
+      <aside
+        id="app-sidebar"
+        class="fixed inset-y-0 left-0 z-50 flex w-[244px] shrink-0 -translate-x-full flex-col border-r border-hairline bg-surface transition-all duration-200 ease-in-out lg:static lg:translate-x-0 as-sidebar is-collapsed"
+      >
+        <div class="flex items-center justify-center gap-2.5 border-b border-hairline px-4 py-3">
           <img
             src={~p"/images/logo_aquasense.png"}
             alt="AquaSense"
-            class="size-full h-28 object-contain"
+            class="as-expanded-logo size-full h-28 object-contain"
+          />
+          <img
+            src={~p"/images/logo.png"}
+            alt="AquaSense"
+            class="as-collapsed-logo size-11 object-contain"
           />
         </div>
 
         <nav class="flex grow flex-col gap-0.5 overflow-y-auto px-3 py-3.5">
           <%= for group <- @nav do %>
-            <p class="as-eyebrow px-3 pt-3.5 pb-1.5 first:pt-1.5">{group.label}</p>
+            <p class="as-eyebrow as-collapsible px-3 pt-3.5 pb-1.5 first:pt-1.5">{group.label}</p>
             <button
               :for={item <- group.items}
               type="button"
               class="as-nav-item"
+              title={item.label}
               aria-current={@active == item.id && "page"}
-              phx-click={@nav_event}
+              phx-click={JS.push(@nav_event, value: %{"tab" => item.id}) |> close_sidebar()}
               phx-value-tab={item.id}
             >
-              <.icon name={item.icon} class="size-4.5 shrink-0" />
-              <span class="grow">{item.label}</span>
+              <.icon name={item.icon} class="size-5.5 shrink-0" />
+              <span class="as-collapsible grow">{item.label}</span>
               <span
                 :if={item[:badge]}
+                class="as-collapsible"
                 class="as-chip as-chip-tone as-tone-crit h-5 px-1.5 text-[10.5px]"
               >
                 {item.badge}
@@ -95,23 +114,12 @@ defmodule AquaSenseWeb.Layouts do
         </nav>
 
         <div class="flex flex-col gap-2.5 border-t border-hairline p-3">
-          <div :if={@device} class="rounded-lg border border-hairline bg-inset p-2.5">
-            <p class="flex items-center gap-2 text-[11.5px] font-semibold text-ink">
-              <span class={[
-                "size-1.5 shrink-0 rounded-full",
-                if(@device.online?, do: "bg-ok-mark", else: "bg-crit-mark")
-              ]}>
-              </span>
-              {@device.label}
-            </p>
-            <p class="as-num mt-1.5 text-[11px] text-ink-3">{@device.detail}</p>
-          </div>
 
-          <div :if={@current_user} class="flex items-center gap-2.5">
+          <div :if={@current_user} class="as-user-row flex items-center gap-2.5">
             <span class="flex size-8 shrink-0 items-center justify-center rounded-full bg-level-tint text-xs font-bold text-level">
               {initial(@current_user)}
             </span>
-            <span class="min-w-0 grow">
+            <span class="as-collapsible min-w-0 grow">
               <span class="block truncate text-[12.5px] font-semibold text-ink">
                 {@current_user.name}
               </span>
@@ -128,12 +136,29 @@ defmodule AquaSenseWeb.Layouts do
             </.link>
           </div>
 
-          <.theme_toggle />
+          <div class="as-collapsible"><.theme_toggle /></div>
         </div>
       </aside>
 
       <div class="flex min-w-0 grow flex-col">
         <header class="flex h-[62px] shrink-0 items-center gap-4 border-b border-hairline bg-surface px-6">
+          <button
+            type="button"
+            class="flex size-9 shrink-0 items-center justify-center rounded-lg text-ink-3 hover:bg-ghost hover:text-ink lg:hidden"
+            phx-click={open_sidebar()}
+            aria-label="Abrir menu"
+          >
+            <.icon name="hero-bars-3" class="size-5" />
+          </button>
+          <button
+            type="button"
+            class="hidden size-9 shrink-0 items-center justify-center rounded-lg text-ink-3 hover:bg-ghost hover:text-ink lg:flex"
+            phx-click={JS.toggle_class("is-collapsed", to: "#app-sidebar")}
+            aria-label="Recolher ou expandir menu"
+          >
+            <.icon name="hero-bars-3" class="size-5" />
+          </button>
+
           <div class="min-w-0">
             <p :if={@crumb} class="text-[11px] text-ink-3">{@crumb}</p>
             <h1 :if={@title} class="text-[17px] font-bold tracking-tight">{@title}</h1>
@@ -152,6 +177,21 @@ defmodule AquaSenseWeb.Layouts do
 
     <.flash_group flash={@flash} />
     """
+  end
+
+  # Gaveta da barra lateral no mobile: abaixo de `lg` ela fica fora da tela
+  # (-translate-x-full) e some no fluxo (fixed); abrir/fechar só troca essa
+  # classe e mostra/esconde o fundo escurecido atrás dela.
+  defp open_sidebar(js \\ %JS{}) do
+    js
+    |> JS.remove_class("-translate-x-full", to: "#app-sidebar")
+    |> JS.show(to: "#sidebar-backdrop")
+  end
+
+  defp close_sidebar(js \\ %JS{}) do
+    js
+    |> JS.add_class("-translate-x-full", to: "#app-sidebar")
+    |> JS.hide(to: "#sidebar-backdrop")
   end
 
   @doc """
