@@ -259,7 +259,6 @@ defmodule AquaSenseWeb.DashboardLive do
 
     assign(socket,
       parameters: parameters,
-      banner: banner(parameters),
       level: List.last(level_values),
       # Nível é a série do topo: porcentagem tem zero significativo, então o
       # eixo começa em zero e o preenchimento sob a curva é honesto.
@@ -381,52 +380,6 @@ defmodule AquaSenseWeb.DashboardLive do
       value >= limit * 0.9 -> :warn
       true -> :ok
     end
-  end
-
-  # Veredito do topo do painel: o pior parâmetro manda. Responder "está tudo
-  # bem?" é a primeira função da tela, antes de qualquer número.
-  defp banner(parameters) do
-    case Enum.sort_by(parameters, &tone_rank(&1.tone)) do
-      [%{tone: :ok} | _rest] ->
-        %{
-          tone: :ok,
-          title: "Todos os parâmetros dentro do padrão",
-          detail:
-            "As quatro leituras das últimas 24 h ficaram abaixo dos limites da Portaria GM/MS nº 888/2021."
-        }
-
-      [worst | _rest] ->
-        %{
-          tone: worst.tone,
-          title: banner_title(worst.tone),
-          detail: banner_detail(worst)
-        }
-    end
-  end
-
-  defp tone_rank(:crit), do: 0
-  defp tone_rank(:warn), do: 1
-  defp tone_rank(:ok), do: 2
-  defp tone_rank(:info), do: 3
-
-  defp banner_title(:crit), do: "1 parâmetro fora do limite legal"
-  defp banner_title(:warn), do: "1 parâmetro se aproximando do limite"
-  defp banner_title(:info), do: "Aguardando leituras do sensor"
-
-  defp banner_detail(%{value: nil} = parameter) do
-    "Nenhuma leitura recebida ainda para #{String.downcase(parameter.label)}."
-  end
-
-  defp banner_detail(%{limit: limit} = parameter) when is_number(limit) do
-    pct = round(parameter.value / limit * 100)
-
-    "#{parameter.label} em #{parameter.formatted} #{parameter.unit} — #{pct}% do teto de " <>
-      "#{Format.number(limit, 0)} #{parameter.unit} da Portaria GM/MS nº 888/2021."
-  end
-
-  defp banner_detail(%{floor: floor} = parameter) do
-    "#{parameter.label} em #{parameter.formatted} #{parameter.unit}, contra o mínimo " <>
-      "operacional de #{Format.number(floor, 0)} #{parameter.unit}."
   end
 
   defp tone_label(:ok), do: "Normal"

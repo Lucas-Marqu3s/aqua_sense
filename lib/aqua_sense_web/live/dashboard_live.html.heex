@@ -3,7 +3,7 @@
   current_user={@current_user}
   nav={@nav}
   active={@active_tab}
-  crumb="Reservatório Central · Campus"
+  crumb="Reservatório Central · Prédio"
   title={@page_title}
 >
   <:actions>
@@ -13,27 +13,9 @@
     <button type="button" class="as-btn as-btn-ghost">
       <.icon name="hero-arrow-down-tray" class="size-3.5" /> Exportar
     </button>
-    <span class="as-chip as-chip-tone as-tone-ok h-8 px-3">
-      <span class="size-1.5 rounded-full bg-ok-mark"></span> Ao vivo
-    </span>
   </:actions>
-
   <%!-- ══ VISÃO GERAL ══ --%>
   <div :if={@active_tab == "overview"} class="flex flex-col gap-4">
-    <.status_banner tone={@banner.tone} title={@banner.title} meta="leitura 14:30 · há 42 s">
-      <:detail>{@banner.detail}</:detail>
-      <:actions>
-        <button
-          type="button"
-          class="as-btn as-btn-ghost bg-surface"
-          phx-click="set_nav"
-          phx-value-tab="alerts"
-        >
-          Ver alertas
-        </button>
-      </:actions>
-    </.status_banner>
-
     <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
       <.metric_card
         :for={param <- @parameters}

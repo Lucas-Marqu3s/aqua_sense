@@ -832,3 +832,12 @@
     gap: 0.5rem;
   }
 }
+
+/* Botão na borda da barra: seta aponta pra fora quando recolhida, pra dentro quando aberta. */
+.as-sidebar-toggle span {
+  transition: transform 200ms ease-in-out;
+}
+
+#app-sidebar:not(.is-collapsed) .as-sidebar-toggle span {
+  transform: rotate(180deg);
+}

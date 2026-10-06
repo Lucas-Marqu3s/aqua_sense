@@ -47,7 +47,6 @@ defmodule AquaSenseWeb.Layouts do
     default: "set_nav",
     doc: "evento disparado ao clicar num item da lateral"
 
-
   slot :actions
   slot :inner_block, required: true
 
@@ -73,8 +72,17 @@ defmodule AquaSenseWeb.Layouts do
       volta a ser parte do layout normal (static), sempre visível. --%>
       <aside
         id="app-sidebar"
-        class="fixed inset-y-0 left-0 z-50 flex w-[244px] shrink-0 -translate-x-full flex-col border-r border-hairline bg-surface transition-all duration-200 ease-in-out lg:static lg:translate-x-0 as-sidebar is-collapsed"
+        class="fixed inset-y-0 left-0 z-50 flex w-[244px] shrink-0 -translate-x-full flex-col border-r border-hairline bg-surface transition-all duration-200 ease-in-out lg:relative lg:translate-x-0 as-sidebar is-collapsed"
       >
+        <button
+          type="button"
+          class="as-sidebar-toggle absolute top-[72px] -right-3 z-10 hidden size-6 items-center justify-center rounded-full border border-hairline bg-surface text-ink-2 shadow-sm hover:text-ink lg:flex"
+          phx-click={JS.toggle_class("is-collapsed", to: "#app-sidebar")}
+          aria-label="Recolher ou expandir menu"
+        >
+          <.icon name="hero-chevron-right-mini" class="size-4" />
+        </button>
+
         <div class="flex items-center justify-center gap-2.5 border-b border-hairline px-4 py-3">
           <img
             src={~p"/images/logo_aquasense.png"}
@@ -114,7 +122,6 @@ defmodule AquaSenseWeb.Layouts do
         </nav>
 
         <div class="flex flex-col gap-2.5 border-t border-hairline p-3">
-
           <div :if={@current_user} class="as-user-row flex items-center gap-2.5">
             <span class="flex size-8 shrink-0 items-center justify-center rounded-full bg-level-tint text-xs font-bold text-level">
               {initial(@current_user)}
@@ -141,20 +148,12 @@ defmodule AquaSenseWeb.Layouts do
       </aside>
 
       <div class="flex min-w-0 grow flex-col">
-        <header class="flex h-[62px] shrink-0 items-center gap-4 border-b border-hairline bg-surface px-6">
+        <div class="flex items-start gap-3 px-6 pt-5">
           <button
             type="button"
-            class="flex size-9 shrink-0 items-center justify-center rounded-lg text-ink-3 hover:bg-ghost hover:text-ink lg:hidden"
+            class="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-lg text-ink-3 hover:bg-ghost hover:text-ink lg:hidden"
             phx-click={open_sidebar()}
             aria-label="Abrir menu"
-          >
-            <.icon name="hero-bars-3" class="size-5" />
-          </button>
-          <button
-            type="button"
-            class="hidden size-9 shrink-0 items-center justify-center rounded-lg text-ink-3 hover:bg-ghost hover:text-ink lg:flex"
-            phx-click={JS.toggle_class("is-collapsed", to: "#app-sidebar")}
-            aria-label="Recolher ou expandir menu"
           >
             <.icon name="hero-bars-3" class="size-5" />
           </button>
@@ -167,9 +166,9 @@ defmodule AquaSenseWeb.Layouts do
           <div :if={@actions != []} class="ml-auto flex items-center gap-2.5">
             {render_slot(@actions)}
           </div>
-        </header>
+        </div>
 
-        <main class="grow overflow-y-auto p-5">
+        <main class="grow overflow-y-auto px-6 pt-4 pb-5">
           {render_slot(@inner_block)}
         </main>
       </div>

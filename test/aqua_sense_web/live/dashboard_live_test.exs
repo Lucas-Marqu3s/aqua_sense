@@ -91,10 +91,9 @@ defmodule AquaSenseWeb.DashboardLiveTest do
       assert view |> element("#param-turbidity") |> render() =~ "Sem sensor"
     end
 
-    test "abre na visão geral com o veredito no topo", %{conn: conn} do
+    test "abre na visão geral com o gráfico de nível", %{conn: conn} do
       {:ok, _view, html} = live(conn, "/")
 
-      assert html =~ "Portaria"
       assert html =~ "Nível do reservatório"
     end
 
